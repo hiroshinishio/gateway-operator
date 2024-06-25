@@ -14,12 +14,15 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	gatewayv1 "sigs.k8s.io/gateway-api/apis/v1"
 
+	configurationv1alpha1 "github.com/kong/kubernetes-ingress-controller/v3/pkg/apis/configuration/v1alpha1"
+
 	operatorv1alpha1 "github.com/kong/gateway-operator/api/v1alpha1"
 	operatorv1beta1 "github.com/kong/gateway-operator/api/v1beta1"
 	"github.com/kong/gateway-operator/controller/controlplane"
 	"github.com/kong/gateway-operator/controller/dataplane"
 	"github.com/kong/gateway-operator/controller/gateway"
 	"github.com/kong/gateway-operator/controller/gatewayclass"
+	"github.com/kong/gateway-operator/controller/konnect"
 	"github.com/kong/gateway-operator/controller/specialized"
 	"github.com/kong/gateway-operator/internal/utils/index"
 	dataplanevalidator "github.com/kong/gateway-operator/internal/validation/dataplane"
@@ -268,6 +271,31 @@ func SetupControllers(mgr manager.Manager, c *Config) (map[string]ControllerDef,
 				Scheme:          mgr.GetScheme(),
 				DevelopmentMode: c.DevelopmentMode,
 			},
+		},
+
+		// TODO(pmalek)
+		"KonnectControlPlane": {
+			Enabled: true,
+			Controller: konnect.NewKonnectEntityReconciler(
+				operatorv1alpha1.KonnectControlPlane{},
+				c.DevelopmentMode,
+				mgr.GetClient(),
+			),
+		},
+		"Service": {
+			Enabled: true,
+			Controller: konnect.NewKonnectEntityReconciler(
+				configurationv1alpha1.Service{},
+				c.DevelopmentMode,
+				mgr.GetClient(),
+			),
+		},
+		"KonnectAPIAuthConfiguration": {
+			Enabled: true,
+			Controller: konnect.NewKonnectAPIAuthConfigurationReconciler(
+				c.DevelopmentMode,
+				mgr.GetClient(),
+			),
 		},
 	}
 

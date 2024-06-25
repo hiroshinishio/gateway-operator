@@ -40,6 +40,14 @@ func (c *FakeApisV1alpha1) KongPluginInstallations(namespace string) v1alpha1.Ko
 	return &FakeKongPluginInstallations{c, namespace}
 }
 
+func (c *FakeApisV1alpha1) KonnectAPIAuthConfigurations(namespace string) v1alpha1.KonnectAPIAuthConfigurationInterface {
+	return &FakeKonnectAPIAuthConfigurations{c, namespace}
+}
+
+func (c *FakeApisV1alpha1) KonnectControlPlanes(namespace string) v1alpha1.KonnectControlPlaneInterface {
+	return &FakeKonnectControlPlanes{c, namespace}
+}
+
 // RESTClient returns a RESTClient that is used to communicate
 // with API server by this client implementation.
 func (c *FakeApisV1alpha1) RESTClient() rest.Interface {
