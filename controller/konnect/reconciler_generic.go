@@ -316,9 +316,9 @@ func (r *KonnectEntityReconciler[T, TEnt]) Reconcile(
 			}
 		}
 
-		return ctrl.Result{
-			RequeueAfter: configurableSyncPeriod,
-		}, nil
+		// NOTE: we don't need to requeue here because the object update will
+		// trigger another reconciliation.
+		return ctrl.Result{}, nil
 	}
 
 	if err := Update[T, TEnt](ctx, sdk, logger, r.Client, ent); err != nil {
