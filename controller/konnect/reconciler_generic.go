@@ -24,7 +24,7 @@ import (
 
 const (
 	// TODO(pmalek) make configurable
-	configurableSyncPeriod = 3 * time.Second
+	configurableSyncPeriod = 1 * time.Minute
 )
 
 const (
@@ -61,7 +61,7 @@ func (r *KonnectEntityReconciler[T, TEnt]) SetupWithManager(mgr ctrl.Manager) er
 			For(ent).
 			Named(entityTypeName[T]()).
 			WithOptions(controller.Options{
-				// MaxConcurrentReconciles: 128,
+				MaxConcurrentReconciles: 8,
 				// TODO: investigate NewQueue
 			})
 	)
@@ -321,8 +321,10 @@ func (r *KonnectEntityReconciler[T, TEnt]) Reconcile(
 		return ctrl.Result{}, nil
 	}
 
-	if err := Update[T, TEnt](ctx, sdk, logger, r.Client, ent); err != nil {
+	if res, err := Update[T, TEnt](ctx, sdk, logger, r.Client, ent); err != nil {
 		return ctrl.Result{}, fmt.Errorf("failed to update object: %w", err)
+	} else if res.Requeue || res.RequeueAfter > 0 {
+		return res, nil
 	}
 
 	ent.GetStatus().ServerURL = apiAuth.Spec.ServerURL

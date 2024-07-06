@@ -9,11 +9,15 @@ import (
 
 	sdkkonnectgo "github.com/Kong/sdk-konnect-go"
 	"github.com/go-logr/logr"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	configurationv1alpha1 "github.com/kong/kubernetes-ingress-controller/v3/pkg/apis/configuration/v1alpha1"
 
 	operatorv1alpha1 "github.com/kong/gateway-operator/api/v1alpha1"
+	"github.com/kong/gateway-operator/controller/pkg/log"
+	k8sutils "github.com/kong/gateway-operator/pkg/utils/kubernetes"
 )
 
 type Response interface {
@@ -81,7 +85,7 @@ func Delete[
 	T SupportedKonnectEntityType,
 	TEnt EntityType[T],
 ](ctx context.Context, sdk *sdkkonnectgo.SDK, logger logr.Logger, cl client.Client, e *T) error {
-	defer logOpComplete[T, TEnt](logger, time.Now(), CreateOp, e)
+	defer logOpComplete[T, TEnt](logger, time.Now(), DeleteOp, e)
 
 	switch ent := any(e).(type) {
 	case *operatorv1alpha1.KonnectControlPlane:
@@ -100,20 +104,45 @@ func Delete[
 func Update[
 	T SupportedKonnectEntityType,
 	TEnt EntityType[T],
-](ctx context.Context, sdk *sdkkonnectgo.SDK, logger logr.Logger, cl client.Client, e *T) error {
-	defer logOpComplete[T, TEnt](logger, time.Now(), UpdateOp, e)
+](ctx context.Context, sdk *sdkkonnectgo.SDK, logger logr.Logger, cl client.Client, e *T) (ctrl.Result, error) {
+	var (
+		ent                = TEnt(e)
+		condProgrammed, ok = k8sutils.GetCondition(KonnectEntityProgrammedConditionType, ent.GetStatus())
+		now                = time.Now()
+		timeFromLastUpdate = time.Since(condProgrammed.LastTransitionTime.Time)
+	)
+	// If the entity is already programmed and the last update was less than
+	// the configured sync period, requeue after the remaining time.
+	if ok &&
+		condProgrammed.Status == metav1.ConditionTrue &&
+		condProgrammed.Reason == KonnectEntityProgrammedReason &&
+		condProgrammed.ObservedGeneration == ent.GetObjectMeta().GetGeneration() &&
+		timeFromLastUpdate <= configurableSyncPeriod {
+		requeueAfter := configurableSyncPeriod - timeFromLastUpdate
+		log.Debug(logger, "no need for update, requeueing after configured sync period", e,
+			"last_update", condProgrammed.LastTransitionTime.Time,
+			"time_from_last_update", timeFromLastUpdate,
+			"requeue_after", requeueAfter,
+			"requeue_at", now.Add(requeueAfter),
+		)
+		return ctrl.Result{
+			RequeueAfter: requeueAfter,
+		}, nil
+	}
+
+	defer logOpComplete[T, TEnt](logger, now, UpdateOp, e)
 
 	switch ent := any(e).(type) {
 	case *operatorv1alpha1.KonnectControlPlane:
-		return updateControlPlane(ctx, sdk, logger, ent)
+		return ctrl.Result{}, updateControlPlane(ctx, sdk, logger, ent)
 	case *configurationv1alpha1.Service:
-		return updateService(ctx, sdk, logger, cl, ent)
+		return ctrl.Result{}, updateService(ctx, sdk, logger, cl, ent)
 
 		// ---------------------------------------------------------------------
 		// TODO: add other Konnect types
 
 	default:
-		return fmt.Errorf("unsupported entity type %T", ent)
+		return ctrl.Result{}, fmt.Errorf("unsupported entity type %T", ent)
 	}
 }
 
