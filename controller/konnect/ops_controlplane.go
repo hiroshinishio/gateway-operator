@@ -36,7 +36,7 @@ func createControlPlane(
 				errHandled.Error(),
 				cp.GetGeneration(),
 			),
-			&cp.Status,
+			cp,
 		)
 		return errHandled
 	}
@@ -50,7 +50,7 @@ func createControlPlane(
 			"",
 			cp.GetGeneration(),
 		),
-		&cp.Status,
+		cp,
 	)
 
 	return nil
@@ -62,7 +62,7 @@ func deleteControlPlane(
 	logger logr.Logger,
 	cp *operatorv1alpha1.KonnectControlPlane,
 ) error {
-	id := cp.GetStatus().GetKonnectID()
+	id := cp.GetKonnectStatus().GetKonnectID()
 	if id == "" {
 		return fmt.Errorf("can't remove %T without a Konnect ID", cp)
 	}
@@ -91,7 +91,7 @@ func updateControlPlane(
 	logger logr.Logger,
 	cp *operatorv1alpha1.KonnectControlPlane,
 ) error {
-	id := cp.GetStatus().GetKonnectID()
+	id := cp.GetKonnectStatus().GetKonnectID()
 	if id == "" {
 		return fmt.Errorf("can't update %T without a Konnect ID", cp)
 	}
@@ -130,7 +130,7 @@ func updateControlPlane(
 				errHandled.Error(),
 				cp.GetGeneration(),
 			),
-			&cp.Status,
+			cp,
 		)
 		return FailedKonnectOpError[operatorv1alpha1.KonnectControlPlane]{
 			Op:  UpdateOp,
@@ -147,7 +147,7 @@ func updateControlPlane(
 			"",
 			cp.GetGeneration(),
 		),
-		&cp.Status,
+		cp,
 	)
 
 	return nil

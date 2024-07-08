@@ -14,6 +14,8 @@ github.com/Azure/go-ansiterm v0.0.0-20210617225240-d185dfc1b5a1/go.mod h1:xomTg6
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/BurntSushi/toml v1.3.2 h1:o7IhLm0Msx3BaB+n3Ag7L8EVlByGnpq14C4YWiu/gL8=
 github.com/BurntSushi/toml v1.3.2/go.mod h1:CxXYINrC8qIiEnFrOxCa7Jy5BFHlXnUU2pbicEuybxQ=
+github.com/Kong/sdk-konnect-go v0.0.0-20240723160412-999d9a987e1a h1:0mQhPVVA2/+uTVmoKrEIGf+0eTrNyr80Ssv1zGs/1Lk=
+github.com/Kong/sdk-konnect-go v0.0.0-20240723160412-999d9a987e1a/go.mod h1:ipu67aQNnwDzu/LXKePG46cVqkkZnAHKWpsbhTEI8xE=
 github.com/Masterminds/semver v1.5.0 h1:H65muMkzWKEuNDnfl9d70GUjFniHKHRbFPGBuZ3QEww=
 github.com/Masterminds/semver v1.5.0/go.mod h1:MB6lktGJrhw8PrUyiEoblNEGEQ+RzHPF078ddwwvV3Y=
 github.com/Microsoft/go-winio v0.6.1 h1:9/kr64B9VUZrLm5YYwbGtUJnMgqWVOdUAXu6Migciow=
@@ -215,6 +217,10 @@ github.com/kisielk/errcheck v1.5.0/go.mod h1:pFxgyoBC7bSaBwPgfKdkLd5X25qrDl4LWUI
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
 github.com/kong/go-kong v0.57.0 h1:e+4bHTzcO0xhFPVyGIUtlO+B4E4l14k55NH8Vjw6ORY=
 github.com/kong/go-kong v0.57.0/go.mod h1:gyNwyP1fzztT6sX/0/ygMQ30OiRMIQ51b2jSfstMrcU=
+github.com/kong/kubernetes-configuration v0.0.0-20240723160946-8c8e17b0e7d2 h1:6ucoJjRryHo/VWt1aYl/KZTLNED1x1vLmWzy/I0Lbas=
+github.com/kong/kubernetes-configuration v0.0.0-20240723160946-8c8e17b0e7d2/go.mod h1:B2h98GRUoaQVIQza0OnTuk5TMBhOxk8HNOxLu+vg2fc=
+github.com/kong/kubernetes-ingress-controller/v3 v3.2.2 h1:2lFP0AanAfdEQ2XNQwSxR4BP5lpy/BAmNqIxp953qe0=
+github.com/kong/kubernetes-ingress-controller/v3 v3.2.2/go.mod h1:gshVZnDU2FTe/95I3vSJPsH2kyB8zR+GpUIieCyt8C4=
 github.com/kong/kubernetes-telemetry v0.1.4 h1:Yz7OlECxWKgNRG1wJ5imA4+H0dQEpdU9d86uhwUVpu4=
 github.com/kong/kubernetes-telemetry v0.1.4/go.mod h1:z3yB5naZjUmQCFjzD3hsJ9PVYar7BgPJFKzskUuOejU=
 github.com/kong/kubernetes-testing-framework v0.47.1 h1:BE2mQLC0Zj/NC5Y8B1Nm5VZymmrdVfu7cfwVKSobWtg=

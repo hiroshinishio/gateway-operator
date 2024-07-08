@@ -507,10 +507,20 @@ debug.skaffold.continuous: _ensure-kong-system-namespace
 	TAG=$(TAG)-debug REPO_INFO=$(REPO_INFO) COMMIT=$(COMMIT) \
 		$(SKAFFOLD) debug --port-forward=pods --profile=debug --auto-build --auto-deploy --auto-sync
 
+.PHONY: install.kic-crds
+install.kic-crds: kustomize
+	$(KUSTOMIZE) build $(KIC_CRDS_URL) | kubectl apply -f -
+
+# NOTE: this currently doesn't specify the ref but should do so when we use a tagged version of the CRDs.
+CONFIGURATION_CRDS_URL = github.com/kong/kubernetes-configuration/config/crd
+
+.PHONY: install.configuration-crds
+install.configuration-crds: kustomize
+	$(KUSTOMIZE) build $(CONFIGURATION_CRDS_URL) | kubectl apply -f -
+
 # Install CRDs into the K8s cluster specified in ~/.kube/config.
 .PHONY: install
-install: manifests kustomize install-gateway-api-crds
-	$(KUSTOMIZE) build $(KIC_CRDS_URL) | kubectl apply -f -
+install: manifests kustomize install-gateway-api-crds install.kic-crds
 	$(KUSTOMIZE) build config/crd | kubectl apply --server-side -f -
 
 # Install standard and experimental CRDs into the K8s cluster specified in ~/.kube/config.

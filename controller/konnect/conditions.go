@@ -29,3 +29,10 @@ const (
 	KonnectEntityAPIAuthConfigurationRefReasonValid   = "Valid"
 	KonnectEntityAPIAuthConfigurationRefReasonInvalid = "Invalid"
 )
+
+const (
+	ServiceRefValidConditionType = "ServiceRefValid"
+
+	ServiceRefReasonValid   = "Valid"
+	ServiceRefReasonInvalid = "Invalid"
+)

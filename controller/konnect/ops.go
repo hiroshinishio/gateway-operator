@@ -13,7 +13,8 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	configurationv1alpha1 "github.com/kong/kubernetes-ingress-controller/v3/pkg/apis/configuration/v1alpha1"
+	configurationv1 "github.com/kong/kubernetes-configuration/api/configuration/v1"
+	configurationv1alpha1 "github.com/kong/kubernetes-configuration/api/configuration/v1alpha1"
 
 	operatorv1alpha1 "github.com/kong/gateway-operator/api/v1alpha1"
 	"github.com/kong/gateway-operator/controller/pkg/log"
@@ -35,32 +36,6 @@ const (
 	DeleteOp Op = "delete"
 )
 
-// func Get[
-// 	T SupportedKonnectEntityType,
-// ](ctx context.Context, sdk *sdkkonnectgo.SDK, id string) (*T, error) {
-// 	var e T
-// 	switch ent := any(e).(type) {
-// 	case operatorv1alpha1.KonnectControlPlane:
-// 		resp, err := sdk.ControlPlanes.Get(ctx, id)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 		if err := handleStatusCode[T](resp, GetOp); err != nil {
-// 			return nil, err
-// 		}
-
-// 		resp.ControlPlane
-// 		ent.Status.KonnectID = *resp.ControlPlane.ID
-// 		// TODO: add other types
-// 		return e, nil
-
-// 	default:
-// 		return nil, fmt.Errorf("unsupported entity type %T", ent)
-// 	}
-
-// 	return nil, nil
-// }
-
 func Create[
 	T SupportedKonnectEntityType,
 	TEnt EntityType[T],
@@ -70,8 +45,12 @@ func Create[
 	switch ent := any(e).(type) {
 	case *operatorv1alpha1.KonnectControlPlane:
 		return e, createControlPlane(ctx, sdk, logger, ent)
-	case *configurationv1alpha1.Service:
+	case *configurationv1alpha1.KongService:
 		return e, createService(ctx, sdk, logger, cl, ent)
+	case *configurationv1alpha1.KongRoute:
+		return e, createRoute(ctx, sdk, logger, cl, ent)
+	case *configurationv1.KongConsumer:
+		return e, createConsumer(ctx, sdk, logger, cl, ent)
 
 		// ---------------------------------------------------------------------
 		// TODO: add other Konnect types
@@ -90,8 +69,12 @@ func Delete[
 	switch ent := any(e).(type) {
 	case *operatorv1alpha1.KonnectControlPlane:
 		return deleteControlPlane(ctx, sdk, logger, ent)
-	case *configurationv1alpha1.Service:
+	case *configurationv1alpha1.KongService:
 		return deleteService(ctx, sdk, logger, cl, ent)
+	case *configurationv1alpha1.KongRoute:
+		return deleteRoute(ctx, sdk, logger, cl, ent)
+	case *configurationv1.KongConsumer:
+		return deleteConsumer(ctx, sdk, logger, cl, ent)
 
 		// ---------------------------------------------------------------------
 		// TODO: add other Konnect types
@@ -107,7 +90,7 @@ func Update[
 ](ctx context.Context, sdk *sdkkonnectgo.SDK, logger logr.Logger, cl client.Client, e *T) (ctrl.Result, error) {
 	var (
 		ent                = TEnt(e)
-		condProgrammed, ok = k8sutils.GetCondition(KonnectEntityProgrammedConditionType, ent.GetStatus())
+		condProgrammed, ok = k8sutils.GetCondition(KonnectEntityProgrammedConditionType, ent)
 		now                = time.Now()
 		timeFromLastUpdate = time.Since(condProgrammed.LastTransitionTime.Time)
 	)
@@ -135,8 +118,12 @@ func Update[
 	switch ent := any(e).(type) {
 	case *operatorv1alpha1.KonnectControlPlane:
 		return ctrl.Result{}, updateControlPlane(ctx, sdk, logger, ent)
-	case *configurationv1alpha1.Service:
+	case *configurationv1alpha1.KongService:
 		return ctrl.Result{}, updateService(ctx, sdk, logger, cl, ent)
+	case *configurationv1alpha1.KongRoute:
+		return ctrl.Result{}, updateRoute(ctx, sdk, logger, cl, ent)
+	case *configurationv1.KongConsumer:
+		return ctrl.Result{}, updateConsumer(ctx, sdk, logger, cl, ent)
 
 		// ---------------------------------------------------------------------
 		// TODO: add other Konnect types
@@ -154,7 +141,7 @@ func logOpComplete[
 		"op", op,
 		"duration", time.Since(start),
 		"type", entityTypeName[T](),
-		"konnect_id", e.GetStatus().GetKonnectID(),
+		"konnect_id", e.GetKonnectStatus().GetKonnectID(),
 	)
 }
 
@@ -167,7 +154,7 @@ func handleResp[T SupportedKonnectEntityType](err error, resp Response, op Op) e
 		if err != nil {
 			var e T
 			return fmt.Errorf(
-				"failed to %s %T and failed to read response body: %v",
+				"failed to %s %T and failed to read response body: %w",
 				op, e, err,
 			)
 		}
@@ -179,6 +166,10 @@ func handleResp[T SupportedKonnectEntityType](err error, resp Response, op Op) e
 
 type getLabeler interface {
 	GetLabels() map[string]string
+}
+
+type SetLabels interface {
+	SetKonnectLabels(labels map[string]string)
 }
 
 // setKonnectLabels sets the Konnect labels on the object which will be created/updated
@@ -195,7 +186,9 @@ func setKonnectLabels[
 		k8sLabels[k] = v
 	}
 
-	e.SetKonnectLabels(k8sLabels)
+	if l, ok := any(e).(SetLabels); ok {
+		l.SetKonnectLabels(k8sLabels)
+	}
 }
 
 // k8sLabelsForEntity returns the k8s labels for a Konnect entity.
@@ -210,8 +203,8 @@ func k8sLabelsForEntity[
 		k8sLabels = make(map[string]string)
 	}
 	k8sLabels["k8s-uid"] = string(meta.GetUID())
-	k8sLabels["k8s-name"] = string(meta.GetName())
-	k8sLabels["k8s-namespace"] = string(meta.GetNamespace())
+	k8sLabels["k8s-name"] = meta.GetName()
+	k8sLabels["k8s-namespace"] = meta.GetNamespace()
 	k8sLabels["k8s-managed"] = "true"
 	k8sLabels["k8s-generation"] = fmt.Sprintf("%d", meta.GetGeneration())
 

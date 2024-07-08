@@ -1,8 +1,6 @@
 module github.com/kong/gateway-operator
 
-go 1.22.3
-
-toolchain go1.22.4
+go 1.22.4
 
 // 1.2.2 was released on main branch with a breaking change that was not
 // intended to be released in 1.2.x:
@@ -10,9 +8,7 @@ toolchain go1.22.4
 // This retraction is to prevent it from being used and from breaking builds of dependent projects.
 retract v1.2.2
 
-replace github.com/Kong/sdk-konnect-go => ../sdk-konnect-go
-
-replace github.com/kong/kubernetes-ingress-controller/v3 => ../kubernetes-ingress-controller
+// replace github.com/kong/kubernetes-configuration => ../kubernetes-configuration
 
 require (
 	github.com/Masterminds/semver v1.5.0
@@ -20,7 +16,7 @@ require (
 	github.com/cloudflare/cfssl v1.6.5
 	github.com/go-logr/logr v1.4.2
 	github.com/google/uuid v1.6.0
-	github.com/kong/kubernetes-ingress-controller/v3 v3.2.1-0.20240703105758-d5f06afff110
+	github.com/kong/kubernetes-ingress-controller/v3 v3.2.2
 	github.com/kong/kubernetes-telemetry v0.1.4
 	github.com/kong/kubernetes-testing-framework v0.47.1
 	github.com/kong/semver/v4 v4.0.1
@@ -136,7 +132,7 @@ require (
 )
 
 require (
-	github.com/Kong/sdk-konnect-go v0.0.0-20240710145106-d5b456ded359
+	github.com/Kong/sdk-konnect-go v0.0.0-20240723160412-999d9a987e1a
 	github.com/Microsoft/go-winio v0.6.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/blang/semver/v4 v4.0.0 // indirect
@@ -162,6 +158,7 @@ require (
 	github.com/imdario/mergo v0.3.16 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
+	github.com/kong/kubernetes-configuration v0.0.0-20240723160946-8c8e17b0e7d2
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
