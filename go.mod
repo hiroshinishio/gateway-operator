@@ -10,7 +10,7 @@ toolchain go1.22.4
 // This retraction is to prevent it from being used and from breaking builds of dependent projects.
 retract v1.2.2
 
-replace github.com/Kong/sdk-konnect-go => ../sdk-konnect-go
+// replace github.com/Kong/sdk-konnect-go => ../sdk-konnect-go
 
 replace github.com/kong/kubernetes-ingress-controller/v3 => ../kubernetes-ingress-controller
 
