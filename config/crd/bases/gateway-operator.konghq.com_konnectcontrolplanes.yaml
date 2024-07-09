@@ -66,18 +66,24 @@ spec:
               description:
                 description: The description of the control plane in Konnect.
                 type: string
-              konnectAPIAuthConfigurationRef:
+              konnect:
                 properties:
-                  name:
-                    description: Name is the name of the KonnectAPIAuthConfiguration
-                      resource.
-                    type: string
-                  namespace:
-                    description: Namespace is the namespace of the KonnectAPIAuthConfiguration
-                      resource.
-                    type: string
-                required:
-                - name
+                  authRef:
+                    description: |-
+                      APIAuthConfigurationRef is the reference to the API Auth Configuration
+                      that should be used for this Konnect Configuration.
+                    properties:
+                      name:
+                        description: Name is the name of the KonnectAPIAuthConfiguration
+                          resource.
+                        type: string
+                      namespace:
+                        description: Namespace is the namespace of the KonnectAPIAuthConfiguration
+                          resource.
+                        type: string
+                    required:
+                    - name
+                    type: object
                 type: object
               labels:
                 additionalProperties:
