@@ -40,7 +40,7 @@ type KonnectControlPlane struct {
 type KonnectControlPlaneSpec struct {
 	sdkkonnectgocomp.CreateControlPlaneRequest `json:",inline"`
 
-	KonnectAPIAuthConfigurationRef KonnectAPIAuthConfigurationRef `json:"konnectAPIAuthConfigurationRef,omitempty"`
+	KonnectConfiguration KonnectConfiguration `json:"konnect,omitempty"`
 }
 
 // GetKonnectStatus returns the Konnect Status of the KonnectControlPlane.
@@ -57,7 +57,7 @@ func (c *KonnectControlPlane) SetKonnectLabels(labels map[string]string) {
 }
 
 func (c *KonnectControlPlane) GetKonnectAPIAuthConfigurationRef() KonnectAPIAuthConfigurationRef {
-	return c.Spec.KonnectAPIAuthConfigurationRef
+	return c.Spec.KonnectConfiguration.APIAuthConfigurationRef
 }
 
 func (c *KonnectControlPlane) GetReconciliationWatchOptions(
