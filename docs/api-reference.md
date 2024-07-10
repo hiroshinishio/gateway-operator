@@ -11,6 +11,8 @@ Package v1alpha1 contains API Schema definitions for the operator v1alpha1 API g
 
 - [AIGateway](#aigateway)
 - [DataPlaneMetricsExtension](#dataplanemetricsextension)
+- [KonnectAPIAuthConfiguration](#konnectapiauthconfiguration)
+- [KonnectControlPlane](#konnectcontrolplane)
 ### AIGateway
 
 
@@ -77,6 +79,40 @@ the EE version of Kong Gateway Operator with a valid license.
 | `metadata` _[ObjectMeta](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#objectmeta-v1-meta)_ | Refer to Kubernetes API documentation for fields of `metadata`. |
 | `spec` _[DataPlaneMetricsExtensionSpec](#dataplanemetricsextensionspec)_ |  |
 | `status` _[DataPlaneMetricsExtensionStatus](#dataplanemetricsextensionstatus)_ |  |
+
+
+
+### KonnectAPIAuthConfiguration
+
+
+KonnectAPIAuthConfiguration is the Schema for the Konnect configuration type.
+
+<!-- konnect_api_auth_configuration description placeholder -->
+
+| Field | Description |
+| --- | --- |
+| `apiVersion` _string_ | `gateway-operator.konghq.com/v1alpha1`
+| `kind` _string_ | `KonnectAPIAuthConfiguration`
+| `metadata` _[ObjectMeta](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#objectmeta-v1-meta)_ | Refer to Kubernetes API documentation for fields of `metadata`. |
+| `spec` _[KonnectAPIAuthConfigurationSpec](#konnectapiauthconfigurationspec)_ | Spec is the specification of the KonnectAPIAuthConfiguration resource. |
+| `status` _[KonnectAPIAuthConfigurationStatus](#konnectapiauthconfigurationstatus)_ | Status is the status of the KonnectAPIAuthConfiguration resource. |
+
+
+
+### KonnectControlPlane
+
+
+KonnectControlPlane is the Schema for the konnectcontrolplanes API.
+
+<!-- konnect_control_plane description placeholder -->
+
+| Field | Description |
+| --- | --- |
+| `apiVersion` _string_ | `gateway-operator.konghq.com/v1alpha1`
+| `kind` _string_ | `KonnectControlPlane`
+| `metadata` _[ObjectMeta](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#objectmeta-v1-meta)_ | Refer to Kubernetes API documentation for fields of `metadata`. |
+| `spec` _[KonnectControlPlaneSpec](#konnectcontrolplanespec)_ |  |
+| `status` _[KonnectEntityStatus](#konnectentitystatus)_ |  |
 
 
 
@@ -221,6 +257,8 @@ Azure, e.t.c.).
 _Appears in:_
 - [LargeLanguageModels](#largelanguagemodels)
 
+
+
 #### DataPlaneMetricsExtensionSpec
 
 
@@ -287,6 +325,138 @@ defines extended behavior for a resource (e.g. ControlPlane).
 _Appears in:_
 - [ControlPlaneOptions](#controlplaneoptions)
 - [ControlPlaneSpec](#controlplanespec)
+
+#### KIC
+
+
+TODO(pmalek)
+
+
+
+
+
+_Appears in:_
+- [ControlPlaneRef](#controlplaneref)
+
+#### KonnectAPIAuthConfigurationRef
+
+
+
+
+
+
+| Field | Description |
+| --- | --- |
+| `name` _string_ | Name is the name of the KonnectAPIAuthConfiguration resource. |
+| `namespace` _string_ | Namespace is the namespace of the KonnectAPIAuthConfiguration resource. |
+
+
+_Appears in:_
+- [KonnectConfiguration](#konnectconfiguration)
+
+#### KonnectAPIAuthConfigurationSpec
+
+
+KonnectAPIAuthConfigurationSpec is the specification of the KonnectAPIAuthConfiguration resource.
+
+
+
+| Field | Description |
+| --- | --- |
+| `token` _string_ | Token is the Konnect token used to authenticate with the Konnect API. |
+| `serverURL` _string_ | ServerURL is the URL of the Konnect server. TODO(pmalek): do we want this validation? |
+
+
+_Appears in:_
+- [KonnectAPIAuthConfiguration](#konnectapiauthconfiguration)
+
+#### KonnectAPIAuthConfigurationStatus
+
+
+
+
+
+
+| Field | Description |
+| --- | --- |
+| `organizationID` _string_ | OrganizationID is the unique identifier of the organization in Konnect. |
+| `serverURL` _string_ | ServerURL is configured server URL. |
+| `conditions` _[Condition](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#condition-v1-meta) array_ | Conditions describe the status of the Konnect configuration. |
+
+
+_Appears in:_
+- [KonnectAPIAuthConfiguration](#konnectapiauthconfiguration)
+
+#### KonnectConfiguration
+
+
+
+
+
+
+| Field | Description |
+| --- | --- |
+| `authRef` _[KonnectAPIAuthConfigurationRef](#konnectapiauthconfigurationref)_ | APIAuthConfigurationRef is the reference to the API Auth Configuration that should be used for this Konnect Configuration. |
+
+
+_Appears in:_
+- [KonnectControlPlaneSpec](#konnectcontrolplanespec)
+
+#### KonnectControlPlaneSpec
+
+
+
+
+
+
+| Field | Description |
+| --- | --- |
+| `name` _string_ | The name of the control plane. |
+| `description` _string_ | The description of the control plane in Konnect. |
+| `cluster_type` _[ClusterType](#clustertype)_ | The ClusterType value of the cluster associated with the Control Plane. |
+| `auth_type` _[AuthType](#authtype)_ | The auth type value of the cluster associated with the Runtime Group. |
+| `cloud_gateway` _boolean_ | Whether this control-plane can be used for cloud-gateways. |
+| `proxy_urls` _[ProxyURL](#proxyurl) array_ | Array of proxy URLs associated with reaching the data-planes connected to a control-plane. |
+| `labels` _object (keys:string, values:string)_ | Labels store metadata of an entity that can be used for filtering an entity list or for searching across entity types.<br /><br /> Keys must be of length 1-63 characters, and cannot start with "kong", "konnect", "mesh", "kic", or "_". |
+| `konnect` _[KonnectConfiguration](#konnectconfiguration)_ |  |
+
+
+_Appears in:_
+- [KonnectControlPlane](#konnectcontrolplane)
+
+#### KonnectEntityStatus
+
+
+
+
+
+
+| Field | Description |
+| --- | --- |
+| `id` _string_ | KonnectID is the unique identifier of the Konnect entity as assigned by Konnect API. If it's unset (empty string), it means the Konnect entity hasn't been created yet. |
+| `serverURL` _string_ | ServerURL is the URL of the Konnect server in which the entity exists. |
+| `organizationID` _string_ | OrgID is ID of Konnect Org that this entity has been created in. |
+| `conditions` _[Condition](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#condition-v1-meta) array_ | Conditions describe the status of the Konnect entity. |
+
+
+_Appears in:_
+- [KonnectControlPlane](#konnectcontrolplane)
+
+#### KonnectNamespacedRef
+
+
+KonnectNamespacedRef is the schema for the KonnectNamespacedRef type.
+
+
+
+| Field | Description |
+| --- | --- |
+| `name` _string_ |  |
+| `namespace` _string_ |  |
+
+
+_Appears in:_
+- [ControlPlaneRef](#controlplaneref)
 
 #### LLMPrompt
 
