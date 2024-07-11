@@ -160,7 +160,7 @@ require (
 	github.com/imdario/mergo v0.3.16 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
-	github.com/kong/kubernetes-configuration v0.0.0-20240711140937-7a88cd4ae0cb
+	github.com/kong/kubernetes-configuration v0.0.0-20240711155439-0f3e7436684a
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect

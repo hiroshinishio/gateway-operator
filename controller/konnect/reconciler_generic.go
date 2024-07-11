@@ -66,7 +66,7 @@ func (r *KonnectEntityReconciler[T, TEnt]) SetupWithManager(mgr ctrl.Manager) er
 			})
 	)
 
-	for _, dep := range ent.GetReconciliationWatchOptions(r.Client) {
+	for _, dep := range ReconciliationWatchOptionsForEntity(r.Client, ent) {
 		b = dep(b)
 	}
 	return b.Complete(r)
