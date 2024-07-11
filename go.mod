@@ -10,7 +10,7 @@ retract v1.2.2
 
 replace github.com/Kong/sdk-konnect-go => ../sdk-konnect-go
 
-replace github.com/kong/kubernetes-configuration => ../kubernetes-configuration
+// replace github.com/kong/kubernetes-configuration => ../kubernetes-configuration
 
 require (
 	github.com/Masterminds/semver v1.5.0
@@ -160,7 +160,7 @@ require (
 	github.com/imdario/mergo v0.3.16 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
-	github.com/kong/kubernetes-configuration v0.0.0-20240711104830-a48a73d54060
+	github.com/kong/kubernetes-configuration v0.0.0-20240711140937-7a88cd4ae0cb
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect

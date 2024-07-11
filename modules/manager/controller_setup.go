@@ -289,6 +289,14 @@ func SetupControllers(mgr manager.Manager, c *Config) (map[string]ControllerDef,
 				mgr.GetClient(),
 			),
 		},
+		"KongRoute": {
+			Enabled: true,
+			Controller: konnect.NewKonnectEntityReconciler(
+				configurationv1alpha1.KongRoute{},
+				c.DevelopmentMode,
+				mgr.GetClient(),
+			),
+		},
 		"KonnectAPIAuthConfiguration": {
 			Enabled: true,
 			Controller: konnect.NewKonnectAPIAuthConfigurationReconciler(
