@@ -49,7 +49,6 @@ func (r *KonnectAPIAuthConfigurationReconciler) Reconcile(
 	)
 
 	var apiAuth operatorv1alpha1.KonnectAPIAuthConfiguration
-	logger.Info("reconciling")
 	if err := r.Client.Get(ctx, req.NamespacedName, &apiAuth); err != nil {
 		if k8serrors.IsNotFound(err) {
 			return ctrl.Result{}, nil
@@ -57,6 +56,7 @@ func (r *KonnectAPIAuthConfigurationReconciler) Reconcile(
 		return ctrl.Result{}, err
 	}
 
+	log.Debug(logger, "reconciling", apiAuth)
 	if !apiAuth.GetDeletionTimestamp().IsZero() {
 		logger.Info("resource is being deleted")
 		// wait for termination grace period before cleaning up

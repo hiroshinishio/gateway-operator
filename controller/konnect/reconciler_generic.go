@@ -7,6 +7,7 @@ import (
 
 	sdkkonnectgo "github.com/Kong/sdk-konnect-go"
 	sdkkonnectgocomp "github.com/Kong/sdk-konnect-go/models/components"
+	configurationv1alpha1 "github.com/kong/kubernetes-configuration/api/configuration/v1alpha1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -14,8 +15,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
-
-	configurationv1alpha1 "github.com/kong/kubernetes-ingress-controller/v3/pkg/apis/configuration/v1alpha1"
 
 	operatorv1alpha1 "github.com/kong/gateway-operator/api/v1alpha1"
 	"github.com/kong/gateway-operator/controller/pkg/log"
@@ -61,6 +60,7 @@ func (r *KonnectEntityReconciler[T, TEnt]) SetupWithManager(mgr ctrl.Manager) er
 			For(ent).
 			Named(entityTypeName[T]()).
 			WithOptions(controller.Options{
+				// TODO: investigate
 				MaxConcurrentReconciles: 8,
 				// TODO: investigate NewQueue
 			})
@@ -84,7 +84,6 @@ func (r *KonnectEntityReconciler[T, TEnt]) Reconcile(
 		e   T
 		ent = TEnt(&e)
 	)
-	log.Debug(logger, "reconciling", e)
 	if err := r.Client.Get(ctx, req.NamespacedName, ent); err != nil {
 		if k8serrors.IsNotFound(err) {
 			return ctrl.Result{}, nil
@@ -92,6 +91,7 @@ func (r *KonnectEntityReconciler[T, TEnt]) Reconcile(
 		return ctrl.Result{}, err
 	}
 
+	log.Debug(logger, "reconciling", ent)
 	var (
 		apiAuth    operatorv1alpha1.KonnectAPIAuthConfiguration
 		apiAuthRef = types.NamespacedName{
@@ -182,7 +182,7 @@ func (r *KonnectEntityReconciler[T, TEnt]) Reconcile(
 	if typeHasControlPlaneRef(ent) {
 		cpRef := getControlPlaneRef(ent)
 		switch cpRef.Type {
-		case operatorv1alpha1.ControlPlaneRefKonnectNamespacedRef:
+		case configurationv1alpha1.ControlPlaneRefKonnectNamespacedRef:
 			cp := operatorv1alpha1.KonnectControlPlane{}
 			nn := types.NamespacedName{
 				Name:      cpRef.KonnectNamespacedRef.Name,
@@ -245,7 +245,7 @@ func (r *KonnectEntityReconciler[T, TEnt]) Reconcile(
 			// TODO(pmalek): make this generic.
 			// CP ID is not stored in KonnectEntityStatus because not all entities
 			// have a ControlPlaneRef, hence the type constraints in the reconciler can't be used.
-			if svc, ok := any(ent).(*configurationv1alpha1.Service); ok {
+			if svc, ok := any(ent).(*configurationv1alpha1.KongService); ok {
 				svc.Status.ControlPlaneID = cp.Status.KonnectID
 			}
 
@@ -347,7 +347,7 @@ func typeHasControlPlaneRef[T SupportedKonnectEntityType, TEnt EntityType[T]](
 	switch e := any(e).(type) {
 	case *operatorv1alpha1.KonnectControlPlane:
 		return false
-	case *configurationv1alpha1.Service:
+	case *configurationv1alpha1.KongService:
 		return true
 	default:
 		panic(fmt.Sprintf("unsupported entity type %T", e))
@@ -356,13 +356,13 @@ func typeHasControlPlaneRef[T SupportedKonnectEntityType, TEnt EntityType[T]](
 
 func getControlPlaneRef[T SupportedKonnectEntityType, TEnt EntityType[T]](
 	e TEnt,
-) operatorv1alpha1.ControlPlaneRef {
+) configurationv1alpha1.ControlPlaneRef {
 	switch e := any(e).(type) {
 	case *operatorv1alpha1.KonnectControlPlane:
 		// TODO: handle better
 		// Should never happen
 		panic(fmt.Sprintf("unsupported entity type %T", e))
-	case *configurationv1alpha1.Service:
+	case *configurationv1alpha1.KongService:
 		return e.Spec.ControlPlaneRef
 	default:
 		panic(fmt.Sprintf("unsupported entity type %T", e))

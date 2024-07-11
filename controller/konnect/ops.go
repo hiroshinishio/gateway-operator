@@ -13,7 +13,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	configurationv1alpha1 "github.com/kong/kubernetes-ingress-controller/v3/pkg/apis/configuration/v1alpha1"
+	configurationv1alpha1 "github.com/kong/kubernetes-configuration/api/configuration/v1alpha1"
 
 	operatorv1alpha1 "github.com/kong/gateway-operator/api/v1alpha1"
 	"github.com/kong/gateway-operator/controller/pkg/log"
@@ -70,7 +70,7 @@ func Create[
 	switch ent := any(e).(type) {
 	case *operatorv1alpha1.KonnectControlPlane:
 		return e, createControlPlane(ctx, sdk, logger, ent)
-	case *configurationv1alpha1.Service:
+	case *configurationv1alpha1.KongService:
 		return e, createService(ctx, sdk, logger, cl, ent)
 
 		// ---------------------------------------------------------------------
@@ -90,7 +90,7 @@ func Delete[
 	switch ent := any(e).(type) {
 	case *operatorv1alpha1.KonnectControlPlane:
 		return deleteControlPlane(ctx, sdk, logger, ent)
-	case *configurationv1alpha1.Service:
+	case *configurationv1alpha1.KongService:
 		return deleteService(ctx, sdk, logger, cl, ent)
 
 		// ---------------------------------------------------------------------
@@ -135,7 +135,7 @@ func Update[
 	switch ent := any(e).(type) {
 	case *operatorv1alpha1.KonnectControlPlane:
 		return ctrl.Result{}, updateControlPlane(ctx, sdk, logger, ent)
-	case *configurationv1alpha1.Service:
+	case *configurationv1alpha1.KongService:
 		return ctrl.Result{}, updateService(ctx, sdk, logger, cl, ent)
 
 		// ---------------------------------------------------------------------
@@ -167,7 +167,7 @@ func handleResp[T SupportedKonnectEntityType](err error, resp Response, op Op) e
 		if err != nil {
 			var e T
 			return fmt.Errorf(
-				"failed to %s %T and failed to read response body: %v",
+				"failed to %s %T and failed to read response body: %w",
 				op, e, err,
 			)
 		}
@@ -210,8 +210,8 @@ func k8sLabelsForEntity[
 		k8sLabels = make(map[string]string)
 	}
 	k8sLabels["k8s-uid"] = string(meta.GetUID())
-	k8sLabels["k8s-name"] = string(meta.GetName())
-	k8sLabels["k8s-namespace"] = string(meta.GetNamespace())
+	k8sLabels["k8s-name"] = meta.GetName()
+	k8sLabels["k8s-namespace"] = meta.GetNamespace()
 	k8sLabels["k8s-managed"] = "true"
 	k8sLabels["k8s-generation"] = fmt.Sprintf("%d", meta.GetGeneration())
 

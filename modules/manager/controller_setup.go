@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 
+	configurationv1alpha1 "github.com/kong/kubernetes-configuration/api/configuration/v1alpha1"
 	"github.com/samber/lo"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -13,8 +14,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	gatewayv1 "sigs.k8s.io/gateway-api/apis/v1"
-
-	configurationv1alpha1 "github.com/kong/kubernetes-ingress-controller/v3/pkg/apis/configuration/v1alpha1"
 
 	operatorv1alpha1 "github.com/kong/gateway-operator/api/v1alpha1"
 	operatorv1beta1 "github.com/kong/gateway-operator/api/v1beta1"
@@ -282,10 +281,10 @@ func SetupControllers(mgr manager.Manager, c *Config) (map[string]ControllerDef,
 				mgr.GetClient(),
 			),
 		},
-		"Service": {
+		"KongService": {
 			Enabled: true,
 			Controller: konnect.NewKonnectEntityReconciler(
-				configurationv1alpha1.Service{},
+				configurationv1alpha1.KongService{},
 				c.DevelopmentMode,
 				mgr.GetClient(),
 			),
