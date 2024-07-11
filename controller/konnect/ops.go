@@ -35,32 +35,6 @@ const (
 	DeleteOp Op = "delete"
 )
 
-// func Get[
-// 	T SupportedKonnectEntityType,
-// ](ctx context.Context, sdk *sdkkonnectgo.SDK, id string) (*T, error) {
-// 	var e T
-// 	switch ent := any(e).(type) {
-// 	case operatorv1alpha1.KonnectControlPlane:
-// 		resp, err := sdk.ControlPlanes.Get(ctx, id)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 		if err := handleStatusCode[T](resp, GetOp); err != nil {
-// 			return nil, err
-// 		}
-
-// 		resp.ControlPlane
-// 		ent.Status.KonnectID = *resp.ControlPlane.ID
-// 		// TODO: add other types
-// 		return e, nil
-
-// 	default:
-// 		return nil, fmt.Errorf("unsupported entity type %T", ent)
-// 	}
-
-// 	return nil, nil
-// }
-
 func Create[
 	T SupportedKonnectEntityType,
 	TEnt EntityType[T],
@@ -72,6 +46,8 @@ func Create[
 		return e, createControlPlane(ctx, sdk, logger, ent)
 	case *configurationv1alpha1.KongService:
 		return e, createService(ctx, sdk, logger, cl, ent)
+	case *configurationv1alpha1.KongRoute:
+		return e, createRoute(ctx, sdk, logger, cl, ent)
 
 		// ---------------------------------------------------------------------
 		// TODO: add other Konnect types
@@ -92,6 +68,8 @@ func Delete[
 		return deleteControlPlane(ctx, sdk, logger, ent)
 	case *configurationv1alpha1.KongService:
 		return deleteService(ctx, sdk, logger, cl, ent)
+	case *configurationv1alpha1.KongRoute:
+		return deleteRoute(ctx, sdk, logger, cl, ent)
 
 		// ---------------------------------------------------------------------
 		// TODO: add other Konnect types
@@ -137,6 +115,8 @@ func Update[
 		return ctrl.Result{}, updateControlPlane(ctx, sdk, logger, ent)
 	case *configurationv1alpha1.KongService:
 		return ctrl.Result{}, updateService(ctx, sdk, logger, cl, ent)
+	case *configurationv1alpha1.KongRoute:
+		return ctrl.Result{}, updateRoute(ctx, sdk, logger, cl, ent)
 
 		// ---------------------------------------------------------------------
 		// TODO: add other Konnect types
@@ -181,6 +161,10 @@ type getLabeler interface {
 	GetLabels() map[string]string
 }
 
+type SetLabels interface {
+	SetKonnectLabels(labels map[string]string)
+}
+
 // setKonnectLabels sets the Konnect labels on the object which will be created/updated
 // in Konnect.
 // TODO: Do we want to copy the k8s labels (or annotations?) to Konnect?
@@ -195,7 +179,9 @@ func setKonnectLabels[
 		k8sLabels[k] = v
 	}
 
-	e.SetKonnectLabels(k8sLabels)
+	if l, ok := any(e).(SetLabels); ok {
+		l.SetKonnectLabels(k8sLabels)
+	}
 }
 
 // k8sLabelsForEntity returns the k8s labels for a Konnect entity.
