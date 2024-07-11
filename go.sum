@@ -215,8 +215,8 @@ github.com/kisielk/errcheck v1.5.0/go.mod h1:pFxgyoBC7bSaBwPgfKdkLd5X25qrDl4LWUI
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
 github.com/kong/go-kong v0.57.0 h1:e+4bHTzcO0xhFPVyGIUtlO+B4E4l14k55NH8Vjw6ORY=
 github.com/kong/go-kong v0.57.0/go.mod h1:gyNwyP1fzztT6sX/0/ygMQ30OiRMIQ51b2jSfstMrcU=
-github.com/kong/kubernetes-configuration v0.0.0-20240711140937-7a88cd4ae0cb h1:UetcuIp1ogBoaoBYzHzG7+OoTFLac+BQnDNIGcpSw8w=
-github.com/kong/kubernetes-configuration v0.0.0-20240711140937-7a88cd4ae0cb/go.mod h1:6h/Zu28xL+2xzUJid99cOPWQqH2A8caX0BtYjI9LylA=
+github.com/kong/kubernetes-configuration v0.0.0-20240711155439-0f3e7436684a h1:H4BiHW7qTZQHVCtgpO2/P/9RYvK3R4ctj60dtQ4qq2s=
+github.com/kong/kubernetes-configuration v0.0.0-20240711155439-0f3e7436684a/go.mod h1:6h/Zu28xL+2xzUJid99cOPWQqH2A8caX0BtYjI9LylA=
 github.com/kong/kubernetes-ingress-controller/v3 v3.2.1-0.20240703105758-d5f06afff110 h1:qwEpwWsoa81k2g4fBTuAD98HMCPPdbacMtnjon8Goy8=
 github.com/kong/kubernetes-ingress-controller/v3 v3.2.1-0.20240703105758-d5f06afff110/go.mod h1:3NGqHkeqjBrR6UBAb8At0TC1fNumZFXzAF3M4y1bQF4=
 github.com/kong/kubernetes-telemetry v0.1.4 h1:Yz7OlECxWKgNRG1wJ5imA4+H0dQEpdU9d86uhwUVpu4=
