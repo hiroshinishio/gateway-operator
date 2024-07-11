@@ -3,14 +3,14 @@ package v1alpha1
 import (
 	"context"
 
+	sdkkonnectgocomp "github.com/Kong/sdk-konnect-go/models/components"
+	configurationv1alpha1 "github.com/kong/kubernetes-configuration/api/configuration/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-
-	sdkkonnectgocomp "github.com/Kong/sdk-konnect-go/models/components"
 )
 
 func init() {
@@ -34,7 +34,7 @@ type KonnectControlPlane struct {
 
 	Spec KonnectControlPlaneSpec `json:"spec,omitempty"`
 
-	Status KonnectEntityStatus `json:"status,omitempty"`
+	Status configurationv1alpha1.KonnectEntityStatus `json:"status,omitempty"`
 }
 
 type KonnectControlPlaneSpec struct {
@@ -44,7 +44,7 @@ type KonnectControlPlaneSpec struct {
 }
 
 // GetKonnectStatus returns the Konnect Status of the KonnectControlPlane.
-func (c *KonnectControlPlane) GetStatus() *KonnectEntityStatus {
+func (c *KonnectControlPlane) GetStatus() *configurationv1alpha1.KonnectEntityStatus {
 	return &c.Status
 }
 
@@ -56,7 +56,7 @@ func (c *KonnectControlPlane) SetKonnectLabels(labels map[string]string) {
 	c.Spec.Labels = labels
 }
 
-func (c *KonnectControlPlane) GetKonnectAPIAuthConfigurationRef() KonnectAPIAuthConfigurationRef {
+func (c *KonnectControlPlane) GetKonnectAPIAuthConfigurationRef() configurationv1alpha1.KonnectAPIAuthConfigurationRef {
 	return c.Spec.KonnectConfiguration.APIAuthConfigurationRef
 }
 

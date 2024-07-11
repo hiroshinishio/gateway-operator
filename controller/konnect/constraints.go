@@ -3,11 +3,10 @@ package konnect
 import (
 	"fmt"
 
+	configurationv1alpha1 "github.com/kong/kubernetes-configuration/api/configuration/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	configurationv1alpha1 "github.com/kong/kubernetes-ingress-controller/v3/pkg/apis/configuration/v1alpha1"
 
 	operatorv1alpha1 "github.com/kong/gateway-operator/api/v1alpha1"
 )
@@ -25,7 +24,7 @@ func ListTypeForType[T SupportedKonnectEntityType](e *T) client.ObjectList {
 }
 
 type SupportedKonnectEntityType interface {
-	operatorv1alpha1.KonnectControlPlane | configurationv1alpha1.Service
+	operatorv1alpha1.KonnectControlPlane | configurationv1alpha1.KongService | configurationv1alpha1.KongRoute
 	// TODO: add other types
 
 	GetTypeName() string
@@ -43,12 +42,12 @@ type EntityType[
 
 	// Added methods
 
-	GetStatus() *operatorv1alpha1.KonnectEntityStatus
+	GetStatus() *configurationv1alpha1.KonnectEntityStatus
 	// GetStatusID() string
 	// SetStatusID(string)
 	// GetServerURL() string
 	// SetServerURL(string)
 	SetKonnectLabels(labels map[string]string)
 	GetReconciliationWatchOptions(client.Client) []func(*ctrl.Builder) *ctrl.Builder
-	GetKonnectAPIAuthConfigurationRef() operatorv1alpha1.KonnectAPIAuthConfigurationRef
+	GetKonnectAPIAuthConfigurationRef() configurationv1alpha1.KonnectAPIAuthConfigurationRef
 }
