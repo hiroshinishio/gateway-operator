@@ -3,10 +3,11 @@ package konnect
 import (
 	"fmt"
 
-	configurationv1alpha1 "github.com/kong/kubernetes-configuration/api/configuration/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	configurationv1alpha1 "github.com/kong/kubernetes-configuration/api/configuration/v1alpha1"
 
 	operatorv1alpha1 "github.com/kong/gateway-operator/api/v1alpha1"
 )
@@ -47,7 +48,10 @@ type EntityType[
 	// SetStatusID(string)
 	// GetServerURL() string
 	// SetServerURL(string)
-	SetKonnectLabels(labels map[string]string)
+
+	// TODO(pmalek): not all entities can have labels.
+	// SetKonnectLabels(labels map[string]string)
+
 	GetReconciliationWatchOptions(client.Client) []func(*ctrl.Builder) *ctrl.Builder
 	GetKonnectAPIAuthConfigurationRef() configurationv1alpha1.KonnectAPIAuthConfigurationRef
 }

@@ -27,7 +27,7 @@ func init() {
 // +kubebuilder:printcolumn:name="Programmed",description="The Resource is Programmed on Konnect",type=string,JSONPath=`.status.conditions[?(@.type=='Programmed')].status`
 // +kubebuilder:printcolumn:name="ID",description="Konnect ID",type=string,JSONPath=`.status.id`
 // +kubebuilder:printcolumn:name="OrgID",description="Konnect Organization ID this resource belongs to.",type=string,JSONPath=`.status.organizationID`
-// +kubebuilder:validation:XValidation:rule="!has(oldSelf.spec.konnectAPIAuthConfigurationRef) || has(oldSelf.spec.konnectAPIAuthConfigurationRef)", message="Konnect Configuration reference is immutable"
+// +kubebuilder:validation:XValidation:rule="!has(oldSelf.spec.konnect.authRef) || has(oldSelf.spec.konnect.authRef)", message="Konnect Configuration's API auth ref reference is immutable"
 type KonnectControlPlane struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -40,7 +40,7 @@ type KonnectControlPlane struct {
 type KonnectControlPlaneSpec struct {
 	sdkkonnectgocomp.CreateControlPlaneRequest `json:",inline"`
 
-	KonnectConfiguration KonnectConfiguration `json:"konnect,omitempty"`
+	KonnectConfiguration configurationv1alpha1.KonnectConfiguration `json:"konnect,omitempty"`
 }
 
 // GetKonnectStatus returns the Konnect Status of the KonnectControlPlane.
@@ -90,14 +90,17 @@ func enqueueKonnectControlPlaneForKonnectAPIAuthConfiguration(
 			return nil
 		}
 		var l KonnectControlPlaneList
-		if err := cl.List(ctx, &l); err != nil {
+		if err := cl.List(ctx, &l, &client.ListOptions{
+			// TODO: change this is cross namespace refs are allowed.
+			Namespace: auth.GetNamespace(),
+		}); err != nil {
 			return nil
 		}
 		var ret []reconcile.Request
 		for _, cp := range l.Items {
 			authRef := cp.GetKonnectAPIAuthConfigurationRef()
-			if authRef.Name != auth.Name ||
-				authRef.Namespace != auth.Namespace {
+			if authRef.Name != auth.Name {
+				// authRef.Namespace != auth.Namespace {
 				continue
 			}
 			ret = append(ret, reconcile.Request{

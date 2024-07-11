@@ -96,12 +96,14 @@ func (r *KonnectEntityReconciler[T, TEnt]) Reconcile(
 		apiAuth    operatorv1alpha1.KonnectAPIAuthConfiguration
 		apiAuthRef = types.NamespacedName{
 			Name:      ent.GetKonnectAPIAuthConfigurationRef().Name,
-			Namespace: ent.GetKonnectAPIAuthConfigurationRef().Namespace,
+			Namespace: ent.GetNamespace(),
+			// TODO(pmalek): enable if cross namespace refs are allowed
+			// Namespace: ent.GetKonnectAPIAuthConfigurationRef().Namespace,
 		}
 	)
-	if apiAuthRef.Namespace == "" {
-		apiAuthRef.Namespace = ent.GetNamespace()
-	}
+	// if apiAuthRef.Namespace == "" {
+	// 	apiAuthRef.Namespace = ent.GetNamespace()
+	// }
 	if err := r.Client.Get(ctx, apiAuthRef, &apiAuth); err != nil {
 		return ctrl.Result{}, fmt.Errorf("failed to get KonnectAPIAuthConfiguration: %w", err)
 	}
@@ -188,6 +190,9 @@ func (r *KonnectEntityReconciler[T, TEnt]) Reconcile(
 				Name:      cpRef.KonnectNamespacedRef.Name,
 				Namespace: cpRef.KonnectNamespacedRef.Namespace,
 			}
+			if nn.Namespace == "" {
+				nn.Namespace = ent.GetNamespace()
+			}
 			if err := r.Client.Get(ctx, nn, &cp); err != nil {
 				k8sutils.SetCondition(
 					k8sutils.NewConditionWithGeneration(
@@ -248,6 +253,9 @@ func (r *KonnectEntityReconciler[T, TEnt]) Reconcile(
 			if svc, ok := any(ent).(*configurationv1alpha1.KongService); ok {
 				svc.Status.ControlPlaneID = cp.Status.KonnectID
 			}
+			if route, ok := any(ent).(*configurationv1alpha1.KongRoute); ok {
+				route.Status.ControlPlaneID = cp.Status.KonnectID
+			}
 
 			k8sutils.SetCondition(
 				k8sutils.NewConditionWithGeneration(
@@ -268,6 +276,103 @@ func (r *KonnectEntityReconciler[T, TEnt]) Reconcile(
 
 		default:
 			return ctrl.Result{}, fmt.Errorf("unimplemented control plane ref type %q", cpRef.Type)
+		}
+
+		// TODO: handle control plane ref
+	}
+
+	if typeHasServiceRef(ent) {
+		ref := getServiceRef(ent)
+		switch ref.Type {
+		case configurationv1alpha1.ServiceRefNamespacedRef:
+			svc := configurationv1alpha1.KongService{}
+			nn := types.NamespacedName{
+				Name:      ref.NamespacedRef.Name,
+				Namespace: ref.NamespacedRef.Namespace,
+			}
+			if nn.Namespace == "" {
+				nn.Namespace = ent.GetNamespace()
+			}
+			if err := r.Client.Get(ctx, nn, &svc); err != nil {
+				k8sutils.SetCondition(
+					k8sutils.NewConditionWithGeneration(
+						ServiceRefValidConditionType,
+						metav1.ConditionFalse,
+						ServiceRefReasonInvalid,
+						err.Error(),
+						ent.GetGeneration(),
+					),
+					ent.GetStatus(),
+				)
+				if err := r.Client.Status().Update(ctx, ent); err != nil {
+					if k8serrors.IsConflict(err) {
+						return ctrl.Result{Requeue: true}, nil
+					}
+					return ctrl.Result{}, fmt.Errorf("failed to update status: %w", err)
+				}
+
+				return ctrl.Result{}, fmt.Errorf("Can't get the referenced KongService %s: %w", nn, err)
+			}
+
+			cond, ok := k8sutils.GetCondition(KonnectEntityProgrammedConditionType, &svc.Status)
+			if !ok || cond.Status != metav1.ConditionTrue /*|| cond.ObservedGeneration != cp.GetGeneration() */ {
+				ent.GetStatus().SetKonnectID("")
+				k8sutils.SetCondition(
+					k8sutils.NewConditionWithGeneration(
+						ServiceRefValidConditionType,
+						metav1.ConditionFalse,
+						ServiceRefReasonInvalid,
+						fmt.Sprintf("Referenced KongService %s is not programmed yet", nn),
+						ent.GetGeneration(),
+					),
+					ent.GetStatus(),
+				)
+				if err := r.Client.Status().Update(ctx, ent); err != nil {
+					if k8serrors.IsConflict(err) {
+						return ctrl.Result{Requeue: true}, nil
+					}
+					return ctrl.Result{}, fmt.Errorf("failed to update status: %w", err)
+				}
+				return ctrl.Result{Requeue: true}, nil
+			}
+
+			old := ent.DeepCopyObject().(TEnt)
+			if err := controllerutil.SetOwnerReference(&svc, ent, r.Client.Scheme(), controllerutil.WithBlockOwnerDeletion(true)); err != nil {
+				return ctrl.Result{}, fmt.Errorf("failed to set owner reference: %w", err)
+			}
+			if err := r.Client.Patch(ctx, ent, client.MergeFrom(old)); err != nil {
+				if k8serrors.IsConflict(err) {
+					return ctrl.Result{Requeue: true}, nil
+				}
+				return ctrl.Result{}, fmt.Errorf("failed to update status: %w", err)
+			}
+
+			// TODO(pmalek): make this generic.
+			// Service ID is not stored in KonnectEntityStatus because not all entities
+			// have a ServiceRef, hence the type constraints in the reconciler can't be used.
+			if route, ok := any(ent).(*configurationv1alpha1.KongRoute); ok {
+				route.Status.ServiceID = svc.Status.GetKonnectID()
+			}
+
+			k8sutils.SetCondition(
+				k8sutils.NewConditionWithGeneration(
+					ServiceRefValidConditionType,
+					metav1.ConditionTrue,
+					ServiceRefReasonValid,
+					fmt.Sprintf("Referenced KongService %s programmed", nn),
+					ent.GetGeneration(),
+				),
+				ent.GetStatus(),
+			)
+			if err := r.Client.Status().Patch(ctx, ent, client.MergeFrom(old)); err != nil {
+				if k8serrors.IsConflict(err) {
+					return ctrl.Result{Requeue: true}, nil
+				}
+				return ctrl.Result{}, fmt.Errorf("failed to update status: %w", err)
+			}
+
+		default:
+			return ctrl.Result{}, fmt.Errorf("unimplemented KongService ref type %q", ref.Type)
 		}
 
 		// TODO: handle control plane ref
@@ -349,6 +454,8 @@ func typeHasControlPlaneRef[T SupportedKonnectEntityType, TEnt EntityType[T]](
 		return false
 	case *configurationv1alpha1.KongService:
 		return true
+	case *configurationv1alpha1.KongRoute:
+		return true
 	default:
 		panic(fmt.Sprintf("unsupported entity type %T", e))
 	}
@@ -364,6 +471,38 @@ func getControlPlaneRef[T SupportedKonnectEntityType, TEnt EntityType[T]](
 		panic(fmt.Sprintf("unsupported entity type %T", e))
 	case *configurationv1alpha1.KongService:
 		return e.Spec.ControlPlaneRef
+	case *configurationv1alpha1.KongRoute:
+		return e.Spec.ControlPlaneRef
+	default:
+		panic(fmt.Sprintf("unsupported entity type %T", e))
+	}
+}
+
+func typeHasServiceRef[T SupportedKonnectEntityType, TEnt EntityType[T]](
+	e TEnt,
+) bool {
+	switch any(e).(type) {
+	case *operatorv1alpha1.KonnectControlPlane:
+		return false
+	case *configurationv1alpha1.KongService:
+		return false
+	case *configurationv1alpha1.KongRoute:
+		return true
+	default:
+		return false
+	}
+}
+
+func getServiceRef[T SupportedKonnectEntityType, TEnt EntityType[T]](
+	e TEnt,
+) configurationv1alpha1.ServiceRef {
+	switch e := any(e).(type) {
+	case *operatorv1alpha1.KonnectControlPlane, *configurationv1alpha1.KongService:
+		// TODO: handle better
+		// Should never happen
+		panic(fmt.Sprintf("unsupported entity type %T", e))
+	case *configurationv1alpha1.KongRoute:
+		return e.Spec.ServiceRef
 	default:
 		panic(fmt.Sprintf("unsupported entity type %T", e))
 	}
