@@ -10,11 +10,10 @@ import (
 	sdkkonnectgoops "github.com/Kong/sdk-konnect-go/models/operations"
 	"github.com/Kong/sdk-konnect-go/models/sdkerrors"
 	"github.com/go-logr/logr"
+	configurationv1alpha1 "github.com/kong/kubernetes-configuration/api/configuration/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	configurationv1alpha1 "github.com/kong/kubernetes-ingress-controller/v3/pkg/apis/configuration/v1alpha1"
 
 	operatorv1alpha1 "github.com/kong/gateway-operator/api/v1alpha1"
 	k8sutils "github.com/kong/gateway-operator/pkg/utils/kubernetes"
@@ -25,11 +24,10 @@ func createService(
 	sdk *sdkkonnectgo.SDK,
 	logger logr.Logger,
 	cl client.Client,
-	svc *configurationv1alpha1.Service,
+	svc *configurationv1alpha1.KongService,
 ) error {
 	resp, err := sdk.Services.CreateService(ctx, svc.Status.ControlPlaneID, sdkkonnectgocomp.CreateService{
 		URL:            svc.Spec.URL,
-		CaCertificates: svc.Spec.CaCertificates,
 		ConnectTimeout: svc.Spec.ConnectTimeout,
 		Enabled:        svc.Spec.Enabled,
 		Host:           svc.Spec.Host,
@@ -82,7 +80,7 @@ func updateService(
 	sdk *sdkkonnectgo.SDK,
 	logger logr.Logger,
 	cl client.Client,
-	svc *configurationv1alpha1.Service,
+	svc *configurationv1alpha1.KongService,
 ) error {
 	// TODO(pmalek) handle other types of CP ref
 	nnCP := types.NamespacedName{
@@ -104,7 +102,6 @@ func updateService(
 		ServiceID:      svc.Status.KonnectID,
 		CreateService: sdkkonnectgocomp.CreateService{
 			URL:            svc.Spec.URL,
-			CaCertificates: svc.Spec.CaCertificates,
 			ConnectTimeout: svc.Spec.ConnectTimeout,
 			Enabled:        svc.Spec.Enabled,
 			Host:           svc.Spec.Host,
@@ -124,7 +121,7 @@ func updateService(
 	// TODO: handle already exists
 	// Can't adopt it as it will cause conflicts between the controller
 	// that created that entity and already manages it, hm
-	if errHandled := handleResp[configurationv1alpha1.Service](err, resp, UpdateOp); errHandled != nil {
+	if errHandled := handleResp[configurationv1alpha1.KongService](err, resp, UpdateOp); errHandled != nil {
 		k8sutils.SetCondition(
 			k8sutils.NewConditionWithGeneration(
 				KonnectEntityProgrammedConditionType,
@@ -159,7 +156,7 @@ func deleteService(
 	sdk *sdkkonnectgo.SDK,
 	logger logr.Logger,
 	cl client.Client,
-	svc *configurationv1alpha1.Service,
+	svc *configurationv1alpha1.KongService,
 ) error {
 	id := svc.GetStatus().GetKonnectID()
 	if id == "" {
@@ -167,7 +164,7 @@ func deleteService(
 	}
 
 	resp, err := sdk.Services.DeleteService(ctx, svc.Status.ControlPlaneID, id)
-	if errHandled := handleResp[configurationv1alpha1.Service](err, resp, DeleteOp); errHandled != nil {
+	if errHandled := handleResp[configurationv1alpha1.KongService](err, resp, DeleteOp); errHandled != nil {
 		var sdkError *sdkerrors.SDKError
 		if errors.As(errHandled, &sdkError) && sdkError.StatusCode == 404 {
 			logger.Info("entity not found in Konnect, skipping delete",
@@ -175,7 +172,7 @@ func deleteService(
 			)
 			return nil
 		}
-		return FailedKonnectOpError[configurationv1alpha1.Service]{
+		return FailedKonnectOpError[configurationv1alpha1.KongService]{
 			Op:  DeleteOp,
 			Err: errHandled,
 		}
