@@ -13,6 +13,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	configurationv1 "github.com/kong/kubernetes-configuration/api/configuration/v1"
 	configurationv1alpha1 "github.com/kong/kubernetes-configuration/api/configuration/v1alpha1"
 
 	operatorv1alpha1 "github.com/kong/gateway-operator/api/v1alpha1"
@@ -48,6 +49,8 @@ func Create[
 		return e, createService(ctx, sdk, logger, cl, ent)
 	case *configurationv1alpha1.KongRoute:
 		return e, createRoute(ctx, sdk, logger, cl, ent)
+	case *configurationv1.KongConsumer:
+		return e, createConsumer(ctx, sdk, logger, cl, ent)
 
 		// ---------------------------------------------------------------------
 		// TODO: add other Konnect types
@@ -70,6 +73,8 @@ func Delete[
 		return deleteService(ctx, sdk, logger, cl, ent)
 	case *configurationv1alpha1.KongRoute:
 		return deleteRoute(ctx, sdk, logger, cl, ent)
+	case *configurationv1.KongConsumer:
+		return deleteConsumer(ctx, sdk, logger, cl, ent)
 
 		// ---------------------------------------------------------------------
 		// TODO: add other Konnect types
@@ -117,6 +122,8 @@ func Update[
 		return ctrl.Result{}, updateService(ctx, sdk, logger, cl, ent)
 	case *configurationv1alpha1.KongRoute:
 		return ctrl.Result{}, updateRoute(ctx, sdk, logger, cl, ent)
+	case *configurationv1.KongConsumer:
+		return ctrl.Result{}, updateConsumer(ctx, sdk, logger, cl, ent)
 
 		// ---------------------------------------------------------------------
 		// TODO: add other Konnect types

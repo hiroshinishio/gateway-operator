@@ -93,7 +93,7 @@ func updateService(
 	}
 	var cp operatorv1alpha1.KonnectControlPlane
 	if err := cl.Get(ctx, nnCP, &cp); err != nil {
-		return fmt.Errorf("failed to get KonnectControlPlane %s: for Service %s: %w",
+		return fmt.Errorf("failed to get KonnectControlPlane %s: for KongService %s: %w",
 			nnCP, client.ObjectKeyFromObject(svc), err,
 		)
 	}
