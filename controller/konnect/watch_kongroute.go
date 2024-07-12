@@ -26,13 +26,20 @@ func KongRouteReconciliationWatchOptions(
 	cl client.Client,
 ) []func(*ctrl.Builder) *ctrl.Builder {
 	return []func(*ctrl.Builder) *ctrl.Builder{
+		// TODO(pmalek): add watch for KonnectControlPlane
 		func(b *ctrl.Builder) *ctrl.Builder {
-			// TODO(pmalek): add watch for KonnectControlPlane
-			// TODO(pmalek): add watch for KongService
 			return b.Watches(
 				&operatorv1alpha1.KonnectAPIAuthConfiguration{},
 				handler.EnqueueRequestsFromMapFunc(
 					enqueueKongRouteForKonnectAPIAuthConfiguration(cl),
+				),
+			)
+		},
+		func(b *ctrl.Builder) *ctrl.Builder {
+			return b.Watches(
+				&configurationv1alpha1.KongService{},
+				handler.EnqueueRequestsFromMapFunc(
+					enqueueKongRouteForKongService(cl),
 				),
 			)
 		},
@@ -65,6 +72,44 @@ func enqueueKongRouteForKonnectAPIAuthConfiguration(
 				NamespacedName: types.NamespacedName{
 					Namespace: cp.Namespace,
 					Name:      cp.Name,
+				},
+			})
+		}
+		return ret
+	}
+}
+
+func enqueueKongRouteForKongService(
+	cl client.Client,
+) func(ctx context.Context, obj client.Object) []reconcile.Request {
+	return func(ctx context.Context, obj client.Object) []reconcile.Request {
+		svc, ok := obj.(*configurationv1alpha1.KongService)
+		if !ok {
+			return nil
+		}
+		var l configurationv1alpha1.KongRouteList
+		if err := cl.List(ctx, &l, &client.ListOptions{
+			// TODO: change this is cross namespace refs are allowed.
+			Namespace: svc.GetNamespace(),
+		}); err != nil {
+			return nil
+		}
+		var ret []reconcile.Request
+		for _, route := range l.Items {
+			svcRef := route.Spec.ServiceRef
+			if svcRef.Type != configurationv1alpha1.ServiceRefNamespacedRef ||
+				svcRef.NamespacedRef == nil {
+				// Should be enforced at the CRD level.
+				continue
+			}
+			if svcRef.NamespacedRef.Name != svc.Name {
+				// TODO: change this is cross namespace refs are allowed.
+				continue
+			}
+			ret = append(ret, reconcile.Request{
+				NamespacedName: types.NamespacedName{
+					Namespace: route.Namespace,
+					Name:      route.Name,
 				},
 			})
 		}
