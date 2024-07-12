@@ -6,6 +6,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	configurationv1 "github.com/kong/kubernetes-configuration/api/configuration/v1"
 	configurationv1alpha1 "github.com/kong/kubernetes-configuration/api/configuration/v1alpha1"
 
 	operatorv1alpha1 "github.com/kong/gateway-operator/api/v1alpha1"
@@ -25,6 +26,8 @@ func ReconciliationWatchOptionsForEntity[
 		return KongServiceReconciliationWatchOptions(cl)
 	case *configurationv1alpha1.KongRoute:
 		return KongRouteReconciliationWatchOptions(cl)
+	case *configurationv1.KongConsumer:
+		return KongConsumerReconciliationWatchOptions(cl)
 	default:
 		panic(fmt.Sprintf("unsupported entity type %T", ent))
 	}

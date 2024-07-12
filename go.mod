@@ -8,8 +8,6 @@ go 1.22.4
 // This retraction is to prevent it from being used and from breaking builds of dependent projects.
 retract v1.2.2
 
-replace github.com/Kong/sdk-konnect-go => ../sdk-konnect-go
-
 // replace github.com/kong/kubernetes-configuration => ../kubernetes-configuration
 
 require (
@@ -18,7 +16,7 @@ require (
 	github.com/cloudflare/cfssl v1.6.5
 	github.com/go-logr/logr v1.4.2
 	github.com/google/uuid v1.6.0
-	github.com/kong/kubernetes-ingress-controller/v3 v3.2.1-0.20240703105758-d5f06afff110
+	github.com/kong/kubernetes-ingress-controller/v3 v3.2.2
 	github.com/kong/kubernetes-telemetry v0.1.4
 	github.com/kong/kubernetes-testing-framework v0.47.1
 	github.com/kong/semver/v4 v4.0.1

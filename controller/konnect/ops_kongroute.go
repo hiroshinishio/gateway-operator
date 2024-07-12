@@ -99,7 +99,7 @@ func updateRoute(
 	}
 	var cp operatorv1alpha1.KonnectControlPlane
 	if err := cl.Get(ctx, nnCP, &cp); err != nil {
-		return fmt.Errorf("failed to get KonnectControlPlane %s: for Route %s: %w",
+		return fmt.Errorf("failed to get KonnectControlPlane %s: for KongRoute %s: %w",
 			nnCP, client.ObjectKeyFromObject(route), err,
 		)
 	}
