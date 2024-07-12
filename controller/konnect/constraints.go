@@ -6,6 +6,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	configurationv1 "github.com/kong/kubernetes-configuration/api/configuration/v1"
 	configurationv1alpha1 "github.com/kong/kubernetes-configuration/api/configuration/v1alpha1"
 
 	operatorv1alpha1 "github.com/kong/gateway-operator/api/v1alpha1"
@@ -24,7 +25,7 @@ func ListTypeForType[T SupportedKonnectEntityType](e *T) client.ObjectList {
 }
 
 type SupportedKonnectEntityType interface {
-	operatorv1alpha1.KonnectControlPlane | configurationv1alpha1.KongService | configurationv1alpha1.KongRoute
+	operatorv1alpha1.KonnectControlPlane | configurationv1alpha1.KongService | configurationv1alpha1.KongRoute | configurationv1.KongConsumer
 	// TODO: add other types
 
 	GetTypeName() string

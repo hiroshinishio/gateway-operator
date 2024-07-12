@@ -7,7 +7,6 @@ import (
 
 	sdkkonnectgo "github.com/Kong/sdk-konnect-go"
 	sdkkonnectgocomp "github.com/Kong/sdk-konnect-go/models/components"
-	configurationv1alpha1 "github.com/kong/kubernetes-configuration/api/configuration/v1alpha1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -15,6 +14,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+
+	configurationv1 "github.com/kong/kubernetes-configuration/api/configuration/v1"
+	configurationv1alpha1 "github.com/kong/kubernetes-configuration/api/configuration/v1alpha1"
 
 	operatorv1alpha1 "github.com/kong/gateway-operator/api/v1alpha1"
 	"github.com/kong/gateway-operator/controller/pkg/log"
@@ -250,11 +252,13 @@ func (r *KonnectEntityReconciler[T, TEnt]) Reconcile(
 			// TODO(pmalek): make this generic.
 			// CP ID is not stored in KonnectEntityStatus because not all entities
 			// have a ControlPlaneRef, hence the type constraints in the reconciler can't be used.
-			if svc, ok := any(ent).(*configurationv1alpha1.KongService); ok {
-				svc.Status.Konnect.ControlPlaneID = cp.Status.ID
-			}
-			if route, ok := any(ent).(*configurationv1alpha1.KongRoute); ok {
-				route.Status.Konnect.ControlPlaneID = cp.Status.ID
+			switch resource := any(ent).(type) {
+			case *configurationv1alpha1.KongService:
+				resource.Status.Konnect.ControlPlaneID = cp.Status.ID
+			case *configurationv1alpha1.KongRoute:
+				resource.Status.Konnect.ControlPlaneID = cp.Status.ID
+			case *configurationv1.KongConsumer:
+				resource.Status.Konnect.ControlPlaneID = cp.Status.ID
 			}
 
 			k8sutils.SetCondition(
@@ -281,6 +285,7 @@ func (r *KonnectEntityReconciler[T, TEnt]) Reconcile(
 		// TODO: handle control plane ref
 	}
 
+	// TODO this is a bit of a mess, we should refactor this
 	if typeHasServiceRef(ent) {
 		ref := getServiceRef(ent)
 		switch ref.Type {
@@ -456,6 +461,8 @@ func typeHasControlPlaneRef[T SupportedKonnectEntityType, TEnt EntityType[T]](
 		return true
 	case *configurationv1alpha1.KongRoute:
 		return true
+	case *configurationv1.KongConsumer:
+		return true
 	default:
 		panic(fmt.Sprintf("unsupported entity type %T", e))
 	}
@@ -473,6 +480,8 @@ func getControlPlaneRef[T SupportedKonnectEntityType, TEnt EntityType[T]](
 		return e.Spec.ControlPlaneRef
 	case *configurationv1alpha1.KongRoute:
 		return e.Spec.ControlPlaneRef
+	case *configurationv1.KongConsumer:
+		return e.Spec.ControlPlaneRef
 	default:
 		panic(fmt.Sprintf("unsupported entity type %T", e))
 	}
@@ -488,6 +497,8 @@ func typeHasServiceRef[T SupportedKonnectEntityType, TEnt EntityType[T]](
 		return false
 	case *configurationv1alpha1.KongRoute:
 		return true
+	case *configurationv1.KongConsumer:
+		return false
 	default:
 		return false
 	}
