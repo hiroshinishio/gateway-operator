@@ -1,16 +1,9 @@
 package v1alpha1
 
 import (
-	"context"
-
 	sdkkonnectgocomp "github.com/Kong/sdk-konnect-go/models/components"
 	configurationv1alpha1 "github.com/kong/kubernetes-configuration/api/configuration/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
-	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/handler"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
 func init() {
@@ -34,7 +27,7 @@ type KonnectControlPlane struct {
 
 	Spec KonnectControlPlaneSpec `json:"spec,omitempty"`
 
-	Status configurationv1alpha1.KonnectEntityStatus `json:"status,omitempty"`
+	Status KonnectControlPlaneStatus `json:"status,omitempty"`
 }
 
 type KonnectControlPlaneSpec struct {
@@ -43,9 +36,25 @@ type KonnectControlPlaneSpec struct {
 	KonnectConfiguration configurationv1alpha1.KonnectConfiguration `json:"konnect,omitempty"`
 }
 
+type KonnectControlPlaneStatus struct {
+	configurationv1alpha1.KonnectEntityStatus `json:",inline"`
+
+	// Conditions describe the current conditions of the KongConsumer.
+	//
+	// Known condition types are:
+	//
+	// * "Programmed"
+	//
+	// +listType=map
+	// +listMapKey=type
+	// +kubebuilder:validation:MaxItems=8
+	// +kubebuilder:default={{type: "Programmed", status: "Unknown", reason:"Pending", message:"Waiting for controller", lastTransitionTime: "1970-01-01T00:00:00Z"}}
+	Conditions []metav1.Condition `json:"conditions,omitempty"`
+}
+
 // GetKonnectStatus returns the Konnect Status of the KonnectControlPlane.
-func (c *KonnectControlPlane) GetStatus() *configurationv1alpha1.KonnectEntityStatus {
-	return &c.Status
+func (c *KonnectControlPlane) GetKonnectStatus() *configurationv1alpha1.KonnectEntityStatus {
+	return &c.Status.KonnectEntityStatus
 }
 
 func (c KonnectControlPlane) GetTypeName() string {
@@ -60,58 +69,14 @@ func (c *KonnectControlPlane) GetKonnectAPIAuthConfigurationRef() configurationv
 	return c.Spec.KonnectConfiguration.APIAuthConfigurationRef
 }
 
-func (c *KonnectControlPlane) GetReconciliationWatchOptions(
-	cl client.Client,
-) []func(*ctrl.Builder) *ctrl.Builder {
-	return []func(*ctrl.Builder) *ctrl.Builder{
-		func(b *ctrl.Builder) *ctrl.Builder {
-			// TODO(pmalek): this can be extracted and used in reconciler.go
-			// as every Konnect entity will have a reference to the KonnectAPIAuthConfiguration.
-			// This would require:
-			// - mapping function from non List types to List types
-			// - a function on each Konnect entity type to get the API Auth configuration
-			//   reference from the object
-			return b.Watches(
-				&KonnectAPIAuthConfiguration{},
-				handler.EnqueueRequestsFromMapFunc(
-					enqueueKonnectControlPlaneForKonnectAPIAuthConfiguration(cl),
-				),
-			)
-		},
-	}
+// GetConditions returns the Status Conditions
+func (c *KonnectControlPlane) GetConditions() []metav1.Condition {
+	return c.Status.Conditions
 }
 
-func enqueueKonnectControlPlaneForKonnectAPIAuthConfiguration(
-	cl client.Client,
-) func(ctx context.Context, obj client.Object) []reconcile.Request {
-	return func(ctx context.Context, obj client.Object) []reconcile.Request {
-		auth, ok := obj.(*KonnectAPIAuthConfiguration)
-		if !ok {
-			return nil
-		}
-		var l KonnectControlPlaneList
-		if err := cl.List(ctx, &l, &client.ListOptions{
-			// TODO: change this is cross namespace refs are allowed.
-			Namespace: auth.GetNamespace(),
-		}); err != nil {
-			return nil
-		}
-		var ret []reconcile.Request
-		for _, cp := range l.Items {
-			authRef := cp.GetKonnectAPIAuthConfigurationRef()
-			if authRef.Name != auth.Name {
-				// authRef.Namespace != auth.Namespace {
-				continue
-			}
-			ret = append(ret, reconcile.Request{
-				NamespacedName: types.NamespacedName{
-					Namespace: cp.Namespace,
-					Name:      cp.Name,
-				},
-			})
-		}
-		return ret
-	}
+// SetConditions sets the Status Conditions
+func (c *KonnectControlPlane) SetConditions(conditions []metav1.Condition) {
+	c.Status.Conditions = conditions
 }
 
 // +kubebuilder:object:root=true
