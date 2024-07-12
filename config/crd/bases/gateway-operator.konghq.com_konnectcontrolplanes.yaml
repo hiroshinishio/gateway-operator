@@ -77,13 +77,12 @@ spec:
                         description: Name is the name of the KonnectAPIAuthConfiguration
                           resource.
                         type: string
-                      namespace:
-                        description: Namespace is the namespace of the KonnectAPIAuthConfiguration
-                          resource.
-                        type: string
                     required:
                     - name
                     type: object
+                    x-kubernetes-validations:
+                    - message: authRef is immutable
+                      rule: self == oldSelf
                 type: object
               labels:
                 additionalProperties:
@@ -132,7 +131,14 @@ spec:
                   reason: Pending
                   status: Unknown
                   type: Programmed
-                description: Conditions describe the status of the Konnect entity.
+                description: |-
+                  Conditions describe the current conditions of the KongConsumer.
+
+
+                  Known condition types are:
+
+
+                  * "Programmed"
                 items:
                   description: "Condition contains details for one aspect of the current
                     state of this API Resource.\n---\nThis struct is intended for
@@ -201,7 +207,6 @@ spec:
                   - type
                   type: object
                 maxItems: 8
-                minItems: 1
                 type: array
                 x-kubernetes-list-map-keys:
                 - type

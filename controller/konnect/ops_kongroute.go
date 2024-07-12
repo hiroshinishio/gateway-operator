@@ -10,10 +10,11 @@ import (
 	sdkkonnectgoops "github.com/Kong/sdk-konnect-go/models/operations"
 	"github.com/Kong/sdk-konnect-go/models/sdkerrors"
 	"github.com/go-logr/logr"
-	configurationv1alpha1 "github.com/kong/kubernetes-configuration/api/configuration/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	configurationv1alpha1 "github.com/kong/kubernetes-configuration/api/configuration/v1alpha1"
 
 	operatorv1alpha1 "github.com/kong/gateway-operator/api/v1alpha1"
 	k8sutils "github.com/kong/gateway-operator/pkg/utils/kubernetes"
@@ -26,7 +27,7 @@ func createRoute(
 	cl client.Client,
 	route *configurationv1alpha1.KongRoute,
 ) error {
-	resp, err := sdk.Routes.CreateRoute(ctx, route.Status.ControlPlaneID, sdkkonnectgocomp.CreateRoute{
+	resp, err := sdk.Routes.CreateRoute(ctx, route.Status.Konnect.ControlPlaneID, sdkkonnectgocomp.CreateRoute{
 		Destinations:            route.Spec.KongRouteAPISpec.Destinations,
 		Headers:                 route.Spec.KongRouteAPISpec.Headers,
 		Hosts:                   route.Spec.KongRouteAPISpec.Hosts,
@@ -45,7 +46,7 @@ func createRoute(
 		StripPath:               route.Spec.KongRouteAPISpec.StripPath,
 		Tags:                    route.Spec.KongRouteAPISpec.Tags,
 		Service: &sdkkonnectgocomp.CreateRouteService{
-			ID: sdkkonnectgo.String(route.Status.ServiceID),
+			ID: sdkkonnectgo.String(route.Status.Konnect.ServiceID),
 		},
 	})
 
@@ -61,12 +62,12 @@ func createRoute(
 				errHandled.Error(),
 				route.GetGeneration(),
 			),
-			&route.Status,
+			route,
 		)
 		return errHandled
 	}
 
-	route.Status.SetKonnectID(*resp.Route.ID)
+	route.GetKonnectStatus().SetKonnectID(*resp.Route.ID)
 	k8sutils.SetCondition(
 		k8sutils.NewConditionWithGeneration(
 			KonnectEntityProgrammedConditionType,
@@ -75,7 +76,7 @@ func createRoute(
 			"",
 			route.GetGeneration(),
 		),
-		&route.Status,
+		route,
 	)
 
 	return nil
@@ -104,8 +105,8 @@ func updateRoute(
 	}
 
 	resp, err := sdk.Routes.UpsertRoute(ctx, sdkkonnectgoops.UpsertRouteRequest{
-		ControlPlaneID: cp.Status.KonnectID,
-		RouteID:        route.Status.KonnectID,
+		ControlPlaneID: cp.Status.ID,
+		RouteID:        route.Status.Konnect.ID,
 		CreateRoute: sdkkonnectgocomp.CreateRoute{
 			Destinations:            route.Spec.KongRouteAPISpec.Destinations,
 			Headers:                 route.Spec.KongRouteAPISpec.Headers,
@@ -125,7 +126,7 @@ func updateRoute(
 			StripPath:               route.Spec.KongRouteAPISpec.StripPath,
 			Tags:                    route.Spec.KongRouteAPISpec.Tags,
 			Service: &sdkkonnectgocomp.CreateRouteService{
-				ID: sdkkonnectgo.String(route.Status.ServiceID),
+				ID: sdkkonnectgo.String(route.Status.Konnect.ServiceID),
 			},
 		},
 	})
@@ -142,13 +143,13 @@ func updateRoute(
 				errHandled.Error(),
 				route.GetGeneration(),
 			),
-			&route.Status,
+			route,
 		)
 		return errHandled
 	}
 
-	route.Status.SetKonnectID(*resp.Route.ID)
-	route.Status.ControlPlaneID = cp.Status.KonnectID
+	route.GetKonnectStatus().SetKonnectID(*resp.Route.ID)
+	route.Status.Konnect.ControlPlaneID = cp.Status.ID
 	k8sutils.SetCondition(
 		k8sutils.NewConditionWithGeneration(
 			KonnectEntityProgrammedConditionType,
@@ -157,7 +158,7 @@ func updateRoute(
 			"",
 			route.GetGeneration(),
 		),
-		&route.Status,
+		route,
 	)
 
 	return nil
@@ -170,12 +171,12 @@ func deleteRoute(
 	cl client.Client,
 	route *configurationv1alpha1.KongRoute,
 ) error {
-	id := route.GetStatus().GetKonnectID()
+	id := route.GetKonnectStatus().GetKonnectID()
 	if id == "" {
 		return fmt.Errorf("can't remove %T without a Konnect ID", route)
 	}
 
-	resp, err := sdk.Routes.DeleteRoute(ctx, route.Status.ControlPlaneID, id)
+	resp, err := sdk.Routes.DeleteRoute(ctx, route.Status.Konnect.ControlPlaneID, id)
 	if errHandled := handleResp[configurationv1alpha1.KongRoute](err, resp, DeleteOp); errHandled != nil {
 		var sdkError *sdkerrors.SDKError
 		if errors.As(errHandled, &sdkError) && sdkError.StatusCode == 404 {

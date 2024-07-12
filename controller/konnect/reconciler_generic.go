@@ -117,7 +117,7 @@ func (r *KonnectEntityReconciler[T, TEnt]) Reconcile(
 				"",
 				ent.GetGeneration(),
 			),
-			ent.GetStatus(),
+			ent,
 		)
 
 		return ctrl.Result{}, nil
@@ -131,7 +131,7 @@ func (r *KonnectEntityReconciler[T, TEnt]) Reconcile(
 			fmt.Sprintf("referenced KonnectAPIAuthConfiguration %s is valid", apiAuthRef),
 			ent.GetGeneration(),
 		),
-		ent.GetStatus(),
+		ent,
 	)
 	if err := r.Client.Status().Update(ctx, ent); err != nil {
 		if k8serrors.IsConflict(err) {
@@ -202,7 +202,7 @@ func (r *KonnectEntityReconciler[T, TEnt]) Reconcile(
 						err.Error(),
 						ent.GetGeneration(),
 					),
-					ent.GetStatus(),
+					ent,
 				)
 				if err := r.Client.Status().Update(ctx, ent); err != nil {
 					if k8serrors.IsConflict(err) {
@@ -214,9 +214,9 @@ func (r *KonnectEntityReconciler[T, TEnt]) Reconcile(
 				return ctrl.Result{}, fmt.Errorf("ControlPlane %s doesn't exist", nn)
 			}
 
-			cond, ok := k8sutils.GetCondition(KonnectEntityProgrammedConditionType, &cp.Status)
+			cond, ok := k8sutils.GetCondition(KonnectEntityProgrammedConditionType, &cp)
 			if !ok || cond.Status != metav1.ConditionTrue /*|| cond.ObservedGeneration != cp.GetGeneration() */ {
-				ent.GetStatus().SetKonnectID("")
+				ent.GetKonnectStatus().SetKonnectID("")
 				k8sutils.SetCondition(
 					k8sutils.NewConditionWithGeneration(
 						ControlPlaneRefValidConditionType,
@@ -225,7 +225,7 @@ func (r *KonnectEntityReconciler[T, TEnt]) Reconcile(
 						fmt.Sprintf("Referenced ControlPlane %s is not programmed yet", nn),
 						ent.GetGeneration(),
 					),
-					ent.GetStatus(),
+					ent,
 				)
 				if err := r.Client.Status().Update(ctx, ent); err != nil {
 					if k8serrors.IsConflict(err) {
@@ -251,10 +251,10 @@ func (r *KonnectEntityReconciler[T, TEnt]) Reconcile(
 			// CP ID is not stored in KonnectEntityStatus because not all entities
 			// have a ControlPlaneRef, hence the type constraints in the reconciler can't be used.
 			if svc, ok := any(ent).(*configurationv1alpha1.KongService); ok {
-				svc.Status.ControlPlaneID = cp.Status.KonnectID
+				svc.Status.Konnect.ControlPlaneID = cp.Status.ID
 			}
 			if route, ok := any(ent).(*configurationv1alpha1.KongRoute); ok {
-				route.Status.ControlPlaneID = cp.Status.KonnectID
+				route.Status.Konnect.ControlPlaneID = cp.Status.ID
 			}
 
 			k8sutils.SetCondition(
@@ -265,7 +265,7 @@ func (r *KonnectEntityReconciler[T, TEnt]) Reconcile(
 					fmt.Sprintf("Referenced ControlPlane %s programmed", nn),
 					ent.GetGeneration(),
 				),
-				ent.GetStatus(),
+				ent,
 			)
 			if err := r.Client.Status().Patch(ctx, ent, client.MergeFrom(old)); err != nil {
 				if k8serrors.IsConflict(err) {
@@ -302,7 +302,7 @@ func (r *KonnectEntityReconciler[T, TEnt]) Reconcile(
 						err.Error(),
 						ent.GetGeneration(),
 					),
-					ent.GetStatus(),
+					ent,
 				)
 				if err := r.Client.Status().Update(ctx, ent); err != nil {
 					if k8serrors.IsConflict(err) {
@@ -314,9 +314,9 @@ func (r *KonnectEntityReconciler[T, TEnt]) Reconcile(
 				return ctrl.Result{}, fmt.Errorf("Can't get the referenced KongService %s: %w", nn, err)
 			}
 
-			cond, ok := k8sutils.GetCondition(KonnectEntityProgrammedConditionType, &svc.Status)
+			cond, ok := k8sutils.GetCondition(KonnectEntityProgrammedConditionType, &svc)
 			if !ok || cond.Status != metav1.ConditionTrue /*|| cond.ObservedGeneration != cp.GetGeneration() */ {
-				ent.GetStatus().SetKonnectID("")
+				ent.GetKonnectStatus().SetKonnectID("")
 				k8sutils.SetCondition(
 					k8sutils.NewConditionWithGeneration(
 						ServiceRefValidConditionType,
@@ -325,7 +325,7 @@ func (r *KonnectEntityReconciler[T, TEnt]) Reconcile(
 						fmt.Sprintf("Referenced KongService %s is not programmed yet", nn),
 						ent.GetGeneration(),
 					),
-					ent.GetStatus(),
+					ent,
 				)
 				if err := r.Client.Status().Update(ctx, ent); err != nil {
 					if k8serrors.IsConflict(err) {
@@ -351,7 +351,7 @@ func (r *KonnectEntityReconciler[T, TEnt]) Reconcile(
 			// Service ID is not stored in KonnectEntityStatus because not all entities
 			// have a ServiceRef, hence the type constraints in the reconciler can't be used.
 			if route, ok := any(ent).(*configurationv1alpha1.KongRoute); ok {
-				route.Status.ServiceID = svc.Status.GetKonnectID()
+				route.Status.Konnect.ServiceID = svc.Status.Konnect.GetKonnectID()
 			}
 
 			k8sutils.SetCondition(
@@ -362,7 +362,7 @@ func (r *KonnectEntityReconciler[T, TEnt]) Reconcile(
 					fmt.Sprintf("Referenced KongService %s programmed", nn),
 					ent.GetGeneration(),
 				),
-				ent.GetStatus(),
+				ent,
 			)
 			if err := r.Client.Status().Patch(ctx, ent, client.MergeFrom(old)); err != nil {
 				if k8serrors.IsConflict(err) {
@@ -384,7 +384,7 @@ func (r *KonnectEntityReconciler[T, TEnt]) Reconcile(
 	//
 	// We should look at the "expectations" for this:
 	// https://github.com/kubernetes/kubernetes/blob/master/pkg/controller/controller_utils.go
-	if id := ent.GetStatus().GetKonnectID(); id == "" {
+	if id := ent.GetKonnectStatus().GetKonnectID(); id == "" {
 		_, err := Create[T, TEnt](ctx, sdk, logger, r.Client, ent)
 		if err != nil {
 			// TODO(pmalek): this is actually not 100% error prone because when status
@@ -403,8 +403,8 @@ func (r *KonnectEntityReconciler[T, TEnt]) Reconcile(
 			}
 		}
 
-		ent.GetStatus().ServerURL = apiAuth.Spec.ServerURL
-		ent.GetStatus().OrgID = apiAuth.Status.OrganizationID
+		ent.GetKonnectStatus().ServerURL = apiAuth.Spec.ServerURL
+		ent.GetKonnectStatus().OrgID = apiAuth.Status.OrganizationID
 		if err := r.Client.Status().Update(ctx, ent); err != nil {
 			if k8serrors.IsConflict(err) {
 				return ctrl.Result{Requeue: true}, nil
@@ -432,8 +432,8 @@ func (r *KonnectEntityReconciler[T, TEnt]) Reconcile(
 		return res, nil
 	}
 
-	ent.GetStatus().ServerURL = apiAuth.Spec.ServerURL
-	ent.GetStatus().OrgID = apiAuth.Status.OrganizationID
+	ent.GetKonnectStatus().ServerURL = apiAuth.Spec.ServerURL
+	ent.GetKonnectStatus().OrgID = apiAuth.Status.OrganizationID
 	if err := r.Client.Status().Update(ctx, ent); err != nil {
 		if k8serrors.IsConflict(err) {
 			return ctrl.Result{Requeue: true}, nil
