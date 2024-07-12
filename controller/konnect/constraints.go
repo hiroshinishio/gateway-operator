@@ -42,7 +42,9 @@ type EntityType[
 
 	// Added methods
 
-	GetStatus() *configurationv1alpha1.KonnectEntityStatus
+	GetConditions() []metav1.Condition
+	SetConditions([]metav1.Condition)
+	GetKonnectStatus() *configurationv1alpha1.KonnectEntityStatus
 	// GetStatusID() string
 	// SetStatusID(string)
 	// GetServerURL() string

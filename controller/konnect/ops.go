@@ -85,7 +85,7 @@ func Update[
 ](ctx context.Context, sdk *sdkkonnectgo.SDK, logger logr.Logger, cl client.Client, e *T) (ctrl.Result, error) {
 	var (
 		ent                = TEnt(e)
-		condProgrammed, ok = k8sutils.GetCondition(KonnectEntityProgrammedConditionType, ent.GetStatus())
+		condProgrammed, ok = k8sutils.GetCondition(KonnectEntityProgrammedConditionType, ent)
 		now                = time.Now()
 		timeFromLastUpdate = time.Since(condProgrammed.LastTransitionTime.Time)
 	)
@@ -134,7 +134,7 @@ func logOpComplete[
 		"op", op,
 		"duration", time.Since(start),
 		"type", entityTypeName[T](),
-		"konnect_id", e.GetStatus().GetKonnectID(),
+		"konnect_id", e.GetKonnectStatus().GetKonnectID(),
 	)
 }
 
