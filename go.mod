@@ -132,7 +132,7 @@ require (
 )
 
 require (
-	github.com/Kong/sdk-konnect-go v0.0.0-20240710152204-959c7a212f74
+	github.com/Kong/sdk-konnect-go v0.0.0-20240723160412-999d9a987e1a
 	github.com/Microsoft/go-winio v0.6.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/blang/semver/v4 v4.0.0 // indirect
@@ -158,7 +158,7 @@ require (
 	github.com/imdario/mergo v0.3.16 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
-	github.com/kong/kubernetes-configuration v0.0.0-20240712110050-b757b4b1c9c4
+	github.com/kong/kubernetes-configuration v0.0.0-20240723160946-8c8e17b0e7d2
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
