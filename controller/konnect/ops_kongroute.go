@@ -27,7 +27,7 @@ func createRoute(
 	cl client.Client,
 	route *configurationv1alpha1.KongRoute,
 ) error {
-	resp, err := sdk.Routes.CreateRoute(ctx, route.Status.Konnect.ControlPlaneID, sdkkonnectgocomp.CreateRoute{
+	resp, err := sdk.Routes.CreateRoute(ctx, route.Status.Konnect.ControlPlaneID, sdkkonnectgocomp.RouteInput{
 		Destinations:            route.Spec.KongRouteAPISpec.Destinations,
 		Headers:                 route.Spec.KongRouteAPISpec.Headers,
 		Hosts:                   route.Spec.KongRouteAPISpec.Hosts,
@@ -45,7 +45,7 @@ func createRoute(
 		Sources:                 route.Spec.KongRouteAPISpec.Sources,
 		StripPath:               route.Spec.KongRouteAPISpec.StripPath,
 		Tags:                    route.Spec.KongRouteAPISpec.Tags,
-		Service: &sdkkonnectgocomp.CreateRouteService{
+		Service: &sdkkonnectgocomp.RouteService{
 			ID: sdkkonnectgo.String(route.Status.Konnect.ServiceID),
 		},
 	})
@@ -107,7 +107,7 @@ func updateRoute(
 	resp, err := sdk.Routes.UpsertRoute(ctx, sdkkonnectgoops.UpsertRouteRequest{
 		ControlPlaneID: cp.Status.ID,
 		RouteID:        route.Status.Konnect.ID,
-		CreateRoute: sdkkonnectgocomp.CreateRoute{
+		Route: sdkkonnectgocomp.RouteInput{
 			Destinations:            route.Spec.KongRouteAPISpec.Destinations,
 			Headers:                 route.Spec.KongRouteAPISpec.Headers,
 			Hosts:                   route.Spec.KongRouteAPISpec.Hosts,
@@ -125,7 +125,7 @@ func updateRoute(
 			Sources:                 route.Spec.KongRouteAPISpec.Sources,
 			StripPath:               route.Spec.KongRouteAPISpec.StripPath,
 			Tags:                    route.Spec.KongRouteAPISpec.Tags,
-			Service: &sdkkonnectgocomp.CreateRouteService{
+			Service: &sdkkonnectgocomp.RouteService{
 				ID: sdkkonnectgo.String(route.Status.Konnect.ServiceID),
 			},
 		},

@@ -27,7 +27,7 @@ func createService(
 	cl client.Client,
 	svc *configurationv1alpha1.KongService,
 ) error {
-	resp, err := sdk.Services.CreateService(ctx, svc.Status.Konnect.ControlPlaneID, sdkkonnectgocomp.CreateService{
+	resp, err := sdk.Services.CreateService(ctx, svc.Status.Konnect.ControlPlaneID, sdkkonnectgocomp.ServiceInput{
 		URL:            svc.Spec.KongServiceAPISpec.URL,
 		ConnectTimeout: svc.Spec.KongServiceAPISpec.ConnectTimeout,
 		Enabled:        svc.Spec.KongServiceAPISpec.Enabled,
@@ -61,7 +61,7 @@ func createService(
 		return errHandled
 	}
 
-	svc.Status.Konnect.SetKonnectID(resp.Service.ID)
+	svc.Status.Konnect.SetKonnectID(*resp.Service.ID)
 	k8sutils.SetCondition(
 		k8sutils.NewConditionWithGeneration(
 			KonnectEntityProgrammedConditionType,
@@ -101,7 +101,7 @@ func updateService(
 	resp, err := sdk.Services.UpsertService(ctx, sdkkonnectgoops.UpsertServiceRequest{
 		ControlPlaneID: cp.Status.ID,
 		ServiceID:      svc.Status.Konnect.ID,
-		CreateService: sdkkonnectgocomp.CreateService{
+		Service: sdkkonnectgocomp.ServiceInput{
 			URL:            svc.Spec.KongServiceAPISpec.URL,
 			ConnectTimeout: svc.Spec.KongServiceAPISpec.ConnectTimeout,
 			Enabled:        svc.Spec.KongServiceAPISpec.Enabled,
@@ -136,7 +136,7 @@ func updateService(
 		return errHandled
 	}
 
-	svc.Status.Konnect.SetKonnectID(resp.Service.ID)
+	svc.Status.Konnect.SetKonnectID(*resp.Service.ID)
 	svc.Status.Konnect.ControlPlaneID = cp.Status.ID
 	k8sutils.SetCondition(
 		k8sutils.NewConditionWithGeneration(

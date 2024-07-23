@@ -27,7 +27,7 @@ func createConsumer(
 	cl client.Client,
 	c *configurationv1.KongConsumer,
 ) error {
-	resp, err := sdk.Consumers.CreateConsumer(ctx, c.Status.Konnect.ControlPlaneID, sdkkonnectgocomp.CreateConsumer{
+	resp, err := sdk.Consumers.CreateConsumer(ctx, c.Status.Konnect.ControlPlaneID, sdkkonnectgocomp.ConsumerInput{
 		CustomID: &c.CustomID,
 		// TODO(pmalek): handle tags via resource annotation as per: https://docs.konghq.com/kubernetes-ingress-controller/latest/reference/annotations/#konghqcomtags
 		// Tags:     ...
@@ -91,7 +91,7 @@ func updateConsumer(
 	resp, err := sdk.Consumers.UpsertConsumer(ctx, sdkkonnectgoops.UpsertConsumerRequest{
 		ControlPlaneID: cp.Status.ID,
 		ConsumerID:     c.Status.Konnect.ID,
-		CreateConsumer: sdkkonnectgocomp.CreateConsumer{
+		Consumer: sdkkonnectgocomp.ConsumerInput{
 			CustomID: &c.CustomID,
 			// TODO(pmalek): handle tags via resource annotation as per: https://docs.konghq.com/kubernetes-ingress-controller/latest/reference/annotations/#konghqcomtags
 			// Tags:     ...

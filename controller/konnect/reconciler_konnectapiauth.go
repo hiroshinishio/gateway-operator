@@ -7,6 +7,7 @@ import (
 
 	sdkkonnectgo "github.com/Kong/sdk-konnect-go"
 	sdkkonnectgocomp "github.com/Kong/sdk-konnect-go/models/components"
+	sdkkonnectgoops "github.com/Kong/sdk-konnect-go/models/operations"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -88,7 +89,9 @@ func (r *KonnectAPIAuthConfigurationReconciler) Reconcile(
 		sdkkonnectgo.WithServerURL("https://"+apiAuth.Spec.ServerURL),
 	)
 
-	respOrg, err := sdk.Me.GetOrganizationsMe(ctx)
+	// NOTE: This is needed because currently the SDK only lists the prod global API as supported:
+	// https://github.com/Kong/sdk-konnect-go/blob/999d9a987e1aa7d2e09ac11b1450f4563adf21ea/models/operations/getorganizationsme.go#L10-L12
+	respOrg, err := sdk.Me.GetOrganizationsMe(ctx, sdkkonnectgoops.WithServerURL("https://"+apiAuth.Spec.ServerURL))
 	if err != nil {
 		if cond, ok := k8sutils.GetCondition(KonnectAPIAuthConfigurationValidConditionType, &apiAuth.Status); !ok ||
 			cond.Status != metav1.ConditionFalse ||
