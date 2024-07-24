@@ -13,7 +13,8 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	operatorv1alpha1 "github.com/kong/gateway-operator/api/v1alpha1"
+	configurationv1alpha1 "github.com/kong/kubernetes-configuration/api/configuration/v1alpha1"
+
 	"github.com/kong/gateway-operator/controller/pkg/log"
 	k8sutils "github.com/kong/gateway-operator/pkg/utils/kubernetes"
 )
@@ -35,7 +36,7 @@ func NewKonnectAPIAuthConfigurationReconciler(
 
 func (r *KonnectAPIAuthConfigurationReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	b := ctrl.NewControllerManagedBy(mgr).
-		For(&operatorv1alpha1.KonnectAPIAuthConfiguration{}).
+		For(&configurationv1alpha1.KonnectAPIAuthConfiguration{}).
 		Named("KonnectAPIAuthConfiguration")
 
 	return b.Complete(r)
@@ -49,7 +50,7 @@ func (r *KonnectAPIAuthConfigurationReconciler) Reconcile(
 		logger         = log.GetLogger(ctx, entityTypeName, r.DevelopmentMode)
 	)
 
-	var apiAuth operatorv1alpha1.KonnectAPIAuthConfiguration
+	var apiAuth configurationv1alpha1.KonnectAPIAuthConfiguration
 	if err := r.Client.Get(ctx, req.NamespacedName, &apiAuth); err != nil {
 		if k8serrors.IsNotFound(err) {
 			return ctrl.Result{}, nil

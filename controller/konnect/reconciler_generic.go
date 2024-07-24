@@ -95,7 +95,7 @@ func (r *KonnectEntityReconciler[T, TEnt]) Reconcile(
 
 	log.Debug(logger, "reconciling", ent)
 	var (
-		apiAuth    operatorv1alpha1.KonnectAPIAuthConfiguration
+		apiAuth    configurationv1alpha1.KonnectAPIAuthConfiguration
 		apiAuthRef = types.NamespacedName{
 			Name:      ent.GetKonnectAPIAuthConfigurationRef().Name,
 			Namespace: ent.GetNamespace(),
