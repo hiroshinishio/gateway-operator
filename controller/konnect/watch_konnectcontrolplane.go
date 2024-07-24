@@ -9,6 +9,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
+	configurationv1alpha1 "github.com/kong/kubernetes-configuration/api/configuration/v1alpha1"
+
 	operatorv1alpha1 "github.com/kong/gateway-operator/api/v1alpha1"
 )
 
@@ -26,7 +28,7 @@ func KonnectControlPlaneReconciliationWatchOptions(
 	return []func(*ctrl.Builder) *ctrl.Builder{
 		func(b *ctrl.Builder) *ctrl.Builder {
 			return b.Watches(
-				&operatorv1alpha1.KonnectAPIAuthConfiguration{},
+				&configurationv1alpha1.KonnectAPIAuthConfiguration{},
 				handler.EnqueueRequestsFromMapFunc(
 					enqueueKonnectControlPlaneForKonnectAPIAuthConfiguration(cl),
 				),
@@ -39,13 +41,13 @@ func enqueueKonnectControlPlaneForKonnectAPIAuthConfiguration(
 	cl client.Client,
 ) func(ctx context.Context, obj client.Object) []reconcile.Request {
 	return func(ctx context.Context, obj client.Object) []reconcile.Request {
-		auth, ok := obj.(*operatorv1alpha1.KonnectAPIAuthConfiguration)
+		auth, ok := obj.(*configurationv1alpha1.KonnectAPIAuthConfiguration)
 		if !ok {
 			return nil
 		}
 		var l operatorv1alpha1.KonnectControlPlaneList
 		if err := cl.List(ctx, &l, &client.ListOptions{
-			// TODO: change this is cross namespace refs are allowed.
+			// TODO: change this when cross namespace refs are allowed.
 			Namespace: auth.GetNamespace(),
 		}); err != nil {
 			return nil

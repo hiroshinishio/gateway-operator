@@ -31,7 +31,6 @@ type ApisV1alpha1Interface interface {
 	AIGatewaysGetter
 	DataPlaneMetricsExtensionsGetter
 	KongPluginInstallationsGetter
-	KonnectAPIAuthConfigurationsGetter
 	KonnectControlPlanesGetter
 }
 
@@ -50,10 +49,6 @@ func (c *ApisV1alpha1Client) DataPlaneMetricsExtensions(namespace string) DataPl
 
 func (c *ApisV1alpha1Client) KongPluginInstallations(namespace string) KongPluginInstallationInterface {
 	return newKongPluginInstallations(c, namespace)
-}
-
-func (c *ApisV1alpha1Client) KonnectAPIAuthConfigurations(namespace string) KonnectAPIAuthConfigurationInterface {
-	return newKonnectAPIAuthConfigurations(c, namespace)
 }
 
 func (c *ApisV1alpha1Client) KonnectControlPlanes(namespace string) KonnectControlPlaneInterface {

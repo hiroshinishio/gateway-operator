@@ -24,6 +24,4 @@ type DataPlaneMetricsExtensionExpansion interface{}
 
 type KongPluginInstallationExpansion interface{}
 
-type KonnectAPIAuthConfigurationExpansion interface{}
-
 type KonnectControlPlaneExpansion interface{}
