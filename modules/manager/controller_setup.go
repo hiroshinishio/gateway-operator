@@ -273,8 +273,14 @@ func SetupControllers(mgr manager.Manager, c *Config) (map[string]ControllerDef,
 				DevelopmentMode: c.DevelopmentMode,
 			},
 		},
-
-		// TODO(pmalek)
+		// Konnect controllers
+		"KonnectAPIAuthConfiguration": {
+			Enabled: true,
+			Controller: konnect.NewKonnectAPIAuthConfigurationReconciler(
+				c.DevelopmentMode,
+				mgr.GetClient(),
+			),
+		},
 		"KonnectControlPlane": {
 			Enabled: true,
 			Controller: konnect.NewKonnectEntityReconciler(
@@ -307,9 +313,9 @@ func SetupControllers(mgr manager.Manager, c *Config) (map[string]ControllerDef,
 				mgr.GetClient(),
 			),
 		},
-		"KonnectAPIAuthConfiguration": {
+		"KongPlugin": {
 			Enabled: true,
-			Controller: konnect.NewKonnectAPIAuthConfigurationReconciler(
+			Controller: konnect.NewKongPluginReconciler(
 				c.DevelopmentMode,
 				mgr.GetClient(),
 			),
