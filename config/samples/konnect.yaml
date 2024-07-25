@@ -1,0 +1,151 @@
+---
+kind: KonnectAPIAuthConfiguration
+apiVersion: configuration.konghq.com/v1alpha1
+metadata:
+  name: demo-auth
+  namespace: default
+spec:
+  token: <YOUR_PAT_HERE>
+  serverURL: eu.api.konghq.tech 
+---
+kind: KonnectControlPlane
+apiVersion: gateway-operator.konghq.com/v1alpha1
+metadata:
+  name: demo-cp
+  namespace: default
+spec:
+  name: demo-cp
+  labels:
+    app: demo-cp
+    key1: demo-cp
+  konnect:
+    authRef:
+      name: demo-auth
+      # namespace not required if APIAuthConfiguration is in the same namespace
+---
+apiVersion: configuration.konghq.com/v1alpha1
+kind: KongService
+metadata:
+  name: service-1
+  namespace: default
+spec:
+  controlPlaneRef:
+    konnectNamespacedRef:
+      name: demo-cp
+    type: konnectNamespacedRef
+  host: foo.com
+  konnect:
+    authRef:
+      name: demo-auth
+---
+apiVersion: configuration.konghq.com/v1alpha1
+kind: KongService
+metadata:
+  name: service-2
+  namespace: default
+spec:
+  controlPlaneRef:
+    konnectNamespacedRef:
+      name: demo-cp
+    type: konnectNamespacedRef
+  host: bar.com
+  konnect:
+    authRef:
+      name: demo-auth
+---
+apiVersion: configuration.konghq.com/v1alpha1
+kind: KongRoute
+metadata:
+  name: route-1
+  namespace: default
+spec:
+  controlPlaneRef:
+    konnectNamespacedRef:
+      name: demo-cp
+    type: konnectNamespacedRef
+  hosts:
+  - example.com
+  konnect:
+    authRef:
+      name: demo-auth
+  name: route-1
+  protocols:
+  - http
+  serviceRef:
+    namespacedRef:
+      name: service-1
+    type: namespacedRef
+---
+apiVersion: configuration.konghq.com/v1alpha1
+kind: KongRoute
+metadata:
+  name: route-2
+  namespace: default
+spec:
+  controlPlaneRef:
+    konnectNamespacedRef:
+      name: demo-cp
+    type: konnectNamespacedRef
+  hosts:
+  - example.com
+  konnect:
+    authRef:
+      name: demo-auth
+  name: route-2
+  protocols:
+  - http
+  serviceRef:
+    namespacedRef:
+      name: service-2
+    type: namespacedRef
+---
+apiVersion: configuration.konghq.com/v1
+kind: KongPlugin
+metadata:
+ name: proxy-cache-all-endpoints
+plugin: proxy-cache
+config:
+ response_code:
+ - 200
+ request_method:
+ - GET
+ - HEAD
+ content_type:
+ - text/plain; charset=utf-8
+ cache_ttl: 300
+ strategy: memory
+---
+apiVersion: configuration.konghq.com/v1
+kind: KongPlugin
+metadata:
+ name: rate-limit-5-min
+config:
+ minute: 5
+ policy: local
+plugin: rate-limiting
+---
+apiVersion: configuration.konghq.com/v1alpha1
+kind: KongPluginBinding
+metadata:
+  generation: 1
+  name: my-rate-limit-binding
+  namespace: default
+spec:
+  pluginRef:
+    name: rate-limit-5-min
+  kong:
+    serviceRef:
+      name: service-1
+---
+apiVersion: configuration.konghq.com/v1alpha1
+kind: KongPluginBinding
+metadata:
+  generation: 1
+  name: my-proxy-cache-binding
+  namespace: default
+spec:
+  pluginRef:
+    name: proxy-cache-all-endpoints
+  kong:
+    serviceRef:
+      name: service-2
