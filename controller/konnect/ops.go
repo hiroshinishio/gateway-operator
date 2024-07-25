@@ -9,12 +9,11 @@ import (
 
 	sdkkonnectgo "github.com/Kong/sdk-konnect-go"
 	"github.com/go-logr/logr"
+	configurationv1 "github.com/kong/kubernetes-configuration/api/configuration/v1"
+	configurationv1alpha1 "github.com/kong/kubernetes-configuration/api/configuration/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	configurationv1 "github.com/kong/kubernetes-configuration/api/configuration/v1"
-	configurationv1alpha1 "github.com/kong/kubernetes-configuration/api/configuration/v1alpha1"
 
 	operatorv1alpha1 "github.com/kong/gateway-operator/api/v1alpha1"
 	"github.com/kong/gateway-operator/controller/pkg/log"
@@ -145,10 +144,14 @@ func logOpComplete[
 	)
 }
 
+// handleResp checks the response from the Konnect API and returns an error if
+// the response is not successful.
+// It closes the response body.
 func handleResp[T SupportedKonnectEntityType](err error, resp Response, op Op) error {
 	if err != nil {
 		return err
 	}
+	defer resp.GetRawResponse().Body.Close()
 	if resp.GetStatusCode() < 200 || resp.GetStatusCode() >= 400 {
 		b, err := io.ReadAll(resp.GetRawResponse().Body)
 		if err != nil {
