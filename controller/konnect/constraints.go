@@ -25,7 +25,11 @@ func ListTypeForType[T SupportedKonnectEntityType](e *T) client.ObjectList {
 }
 
 type SupportedKonnectEntityType interface {
-	operatorv1alpha1.KonnectControlPlane | configurationv1alpha1.KongService | configurationv1alpha1.KongRoute | configurationv1.KongConsumer
+	operatorv1alpha1.KonnectControlPlane |
+		configurationv1alpha1.KongService |
+		configurationv1alpha1.KongRoute |
+		configurationv1.KongConsumer |
+		configurationv1alpha1.KongPluginBinding
 	// TODO: add other types
 
 	GetTypeName() string

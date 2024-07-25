@@ -320,6 +320,13 @@ func SetupControllers(mgr manager.Manager, c *Config) (map[string]ControllerDef,
 				mgr.GetClient(),
 			),
 		},
+		"KongPluginBinding": {
+			Enabled: true,
+			Controller: konnect.NewKongPluginBindingReconciler(
+				c.DevelopmentMode,
+				mgr.GetClient(),
+			),
+		},
 	}
 
 	return controllers, nil
