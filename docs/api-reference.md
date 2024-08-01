@@ -10,6 +10,7 @@
 Package v1alpha1 contains API Schema definitions for the operator v1alpha1 API group
 
 - [AIGateway](#aigateway)
+- [DataPlaneKonnectExtension](#dataplanekonnectextension)
 - [DataPlaneMetricsExtension](#dataplanemetricsextension)
 - [KongPluginInstallation](#kongplugininstallation)
 ### AIGateway
@@ -54,6 +55,23 @@ See: https://kubernetes.io/docs/reference/using-api/cel/
 | `metadata` _[ObjectMeta](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#objectmeta-v1-meta)_ | Refer to Kubernetes API documentation for fields of `metadata`. |
 | `spec` _[AIGatewaySpec](#aigatewayspec)_ | Spec is the desired state of the AIGateway. |
 | `status` _[AIGatewayStatus](#aigatewaystatus)_ | Status is the observed state of the AIGateway. |
+
+
+
+### DataPlaneKonnectExtension
+
+
+DataPlane is the Schema for the dataplanes API
+
+<!-- data_plane_konnect_extension description placeholder -->
+
+| Field | Description |
+| --- | --- |
+| `apiVersion` _string_ | `gateway-operator.konghq.com/v1alpha1`
+| `kind` _string_ | `DataPlaneKonnectExtension`
+| `metadata` _[ObjectMeta](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#objectmeta-v1-meta)_ | Refer to Kubernetes API documentation for fields of `metadata`. |
+| `spec` _[DataPlaneKonnectExtensionSpec](#dataplanekonnectextensionspec)_ |  |
+| `status` _[DataPlaneKonnectExtensionStatus](#dataplanekonnectextensionstatus)_ |  |
 
 
 
@@ -241,6 +259,38 @@ Azure, e.t.c.).
 _Appears in:_
 - [LargeLanguageModels](#largelanguagemodels)
 
+#### DataPlaneKonnectExtensionSpec
+
+
+DataPlaneSpec defines the desired state of DataPlane
+
+
+
+| Field | Description |
+| --- | --- |
+| `controlPlaneID` _string_ | ControlPlaneID is the identifier of the Konnect Control Plane. |
+| `controlPlaneRegion` _string_ | ControlPlaneRegion is the region of the Konnect Control Plane. If not set, 'us' is used as the default region. |
+| `clusterCertificate` _string_ | ClusterCertificate is a name of the Secret containing the Konnect Control Plane's cluster certificate. |
+
+
+_Appears in:_
+- [DataPlaneKonnectExtension](#dataplanekonnectextension)
+
+#### DataPlaneKonnectExtensionStatus
+
+
+DataPlaneStatus defines the observed state of DataPlane
+
+
+
+| Field | Description |
+| --- | --- |
+| `dataPlaneRefs` _[NamespacedRef](#namespacedref) array_ | DataPlaneRefs is the array  of DataPlane references this is associated with. A new reference is set by the operator when this extension is associated with a DataPlane through its extensions spec. |
+
+
+_Appears in:_
+- [DataPlaneKonnectExtension](#dataplanekonnectextension)
+
 #### DataPlaneMetricsExtensionSpec
 
 
@@ -307,6 +357,9 @@ defines extended behavior for a resource (e.g. ControlPlane).
 _Appears in:_
 - [ControlPlaneOptions](#controlplaneoptions)
 - [ControlPlaneSpec](#controlplanespec)
+- [DataPlaneOptions](#dataplaneoptions)
+- [DataPlaneSpec](#dataplanespec)
+- [GatewayConfigDataPlaneOptions](#gatewayconfigdataplaneoptions)
 
 
 
@@ -457,6 +510,7 @@ NamespacedRef is a reference to a namespaced resource.
 
 
 _Appears in:_
+- [DataPlaneKonnectExtensionStatus](#dataplanekonnectextensionstatus)
 - [DataPlaneMetricsExtensionStatus](#dataplanemetricsextensionstatus)
 - [ExtensionRef](#extensionref)
 
@@ -743,6 +797,7 @@ deploy the DataPlane.
 | `deployment` _[DataPlaneDeploymentOptions](#dataplanedeploymentoptions)_ |  |
 | `network` _[DataPlaneNetworkOptions](#dataplanenetworkoptions)_ |  |
 | `resources` _[DataPlaneResources](#dataplaneresources)_ |  |
+| `extensions` _[ExtensionRef](#extensionref) array_ | Extensions provide additional or replacement features for the DataPlane resources to influence or enhance functionality. NOTE: since we have one extension only (DataPlaneKonnectExtension), we limit the amount of extensions to 1. |
 
 
 _Appears in:_
@@ -877,6 +932,7 @@ DataPlaneSpec defines the desired state of DataPlane
 | `deployment` _[DataPlaneDeploymentOptions](#dataplanedeploymentoptions)_ |  |
 | `network` _[DataPlaneNetworkOptions](#dataplanenetworkoptions)_ |  |
 | `resources` _[DataPlaneResources](#dataplaneresources)_ |  |
+| `extensions` _[ExtensionRef](#extensionref) array_ | Extensions provide additional or replacement features for the DataPlane resources to influence or enhance functionality. NOTE: since we have one extension only (DataPlaneKonnectExtension), we limit the amount of extensions to 1. |
 
 
 _Appears in:_
@@ -951,6 +1007,7 @@ configure and deploy a DataPlane object.
 | --- | --- |
 | `deployment` _[DataPlaneDeploymentOptions](#dataplanedeploymentoptions)_ |  |
 | `network` _[GatewayConfigDataPlaneNetworkOptions](#gatewayconfigdataplanenetworkoptions)_ |  |
+| `extensions` _[ExtensionRef](#extensionref) array_ | Extensions provide additional or replacement features for the DataPlane resources to influence or enhance functionality. NOTE: since we have one extension only (DataPlaneKonnectExtension), we limit the amount of extensions to 1. |
 
 
 _Appears in:_

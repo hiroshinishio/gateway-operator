@@ -31,7 +31,10 @@
   [#387](https://github.com/Kong/gateway-operator/pull/387)
 - Introduce `KongPluginInstallation` CRD to allow installing custom Kong
   plugins distributed as container images.
-  [400](https://github.com/Kong/gateway-operator/pull/400)
+  [#400](https://github.com/Kong/gateway-operator/pull/400)
+- The `DataPlaneKonnectExtension` CRD has been introduced. Such a CRD can be attached
+  to a `DataPlane` via the extensions field to have a konnect-flavored `DataPlane`.
+  [#453](https://github.com/Kong/gateway-operator/pull/453)
 
 ### Fixed
 
