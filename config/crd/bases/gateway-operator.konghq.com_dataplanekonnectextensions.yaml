@@ -11,8 +11,8 @@ spec:
     categories:
     - kong
     - all
-    kind: DataplaneKonnectExtension
-    listKind: DataplaneKonnectExtensionList
+    kind: DataPlaneKonnectExtension
+    listKind: DataPlaneKonnectExtensionList
     plural: dataplanekonnectextensions
     singular: dataplanekonnectextension
   scope: Namespaced
