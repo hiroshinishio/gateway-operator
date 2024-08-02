@@ -30,7 +30,7 @@ func init() {
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:shortName=kogc,categories=kong;all
-// +kubebuilder:validation:XValidation:message="Extension not allowed for DataPlane config options",rule="has(self.spec.dataPlaneOptions.extensions) ? has(self.spec.dataPlaneOptions.extensions) && self.spec.dataPlaneOptions.extensions.all(e, e.group == 'gateway-operator.konghq.com' && e.kind == 'DataPlaneKonnectExtension') : true"
+// +kubebuilder:validation:XValidation:message="Extension not allowed for DataPlane config options",rule="has(self.spec.dataPlaneOptions.extensions) ? self.spec.dataPlaneOptions.extensions.all(e, e.group == 'gateway-operator.konghq.com' && e.kind == 'DataPlaneKonnectExtension') : true"
 
 // GatewayConfiguration is the Schema for the gatewayconfigurations API
 type GatewayConfiguration struct {

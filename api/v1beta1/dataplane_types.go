@@ -34,7 +34,7 @@ func init() {
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:shortName=kodp,categories=kong;all
-// +kubebuilder:validation:XValidation:message="Extension not allowed for DataPlane",rule="has(self.spec.extensions) ? has(self.spec.extensions) && self.spec.extensions.all(e, e.group == 'gateway-operator.konghq.com' && e.kind == 'DataPlaneKonnectExtension') : true"
+// +kubebuilder:validation:XValidation:message="Extension not allowed for DataPlane",rule="has(self.spec.extensions) ? self.spec.extensions.all(e, e.group == 'gateway-operator.konghq.com' && e.kind == 'DataPlaneKonnectExtension') : true"
 // +kubebuilder:printcolumn:name="Ready",description="The Resource is ready",type=string,JSONPath=`.status.conditions[?(@.type=='Ready')].status`
 
 // DataPlane is the Schema for the dataplanes API

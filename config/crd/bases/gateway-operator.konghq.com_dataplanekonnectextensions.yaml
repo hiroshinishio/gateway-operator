@@ -20,7 +20,11 @@ spec:
   - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: DataPlane is the Schema for the dataplanes API
+        description: |-
+          DataPlaneKonnectExtension is the Schema for the dataplanekonnectextension API,
+          and is intended to be referenced as extension by the dataplane API.
+          If a DataPlane successfully refers a DataPlaneKonnectExtension, the DataPlane
+          deployment spec gets customized to include the konnect-related configuration.
         properties:
           apiVersion:
             description: |-
@@ -40,12 +44,19 @@ spec:
           metadata:
             type: object
           spec:
-            description: DataPlaneSpec defines the desired state of DataPlane
+            description: DataPlaneKonnectExtensionSpec defines the desired state of
+              DataPlaneKonnectExtension.
             properties:
-              clusterCertificate:
-                description: ClusterCertificate is a name of the Secret containing
+              clusterCertificateSecret:
+                description: ClusterCertificateSecret is a name of the Secret containing
                   the Konnect Control Plane's cluster certificate.
                 type: string
+              clusterDataPlaneLabels:
+                additionalProperties:
+                  type: string
+                description: ClusterDataPlaneLabels is a set of labels that will be
+                  applied to the Konnect DataPlane.
+                type: object
               controlPlaneID:
                 description: ControlPlaneID is the identifier of the Konnect Control
                   Plane.
@@ -60,11 +71,12 @@ spec:
                 - eu
                 type: string
             required:
-            - clusterCertificate
+            - clusterCertificateSecret
             - controlPlaneID
             type: object
           status:
-            description: DataPlaneStatus defines the observed state of DataPlane
+            description: DataPlaneKonnectExtensionStatus defines the observed state
+              of DataPlaneKonnectExtension.
             properties:
               dataPlaneRefs:
                 description: |-

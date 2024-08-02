@@ -9377,8 +9377,8 @@ spec:
         type: object
         x-kubernetes-validations:
         - message: Extension not allowed for DataPlane
-          rule: 'has(self.spec.extensions) ? has(self.spec.extensions) && self.spec.extensions.all(e,
-            e.group == ''gateway-operator.konghq.com'' && e.kind == ''DataPlaneKonnectExtension'')
+          rule: 'has(self.spec.extensions) ? self.spec.extensions.all(e, e.group ==
+            ''gateway-operator.konghq.com'' && e.kind == ''DataPlaneKonnectExtension'')
             : true'
     served: true
     storage: true

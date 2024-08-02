@@ -61,7 +61,10 @@ See: https://kubernetes.io/docs/reference/using-api/cel/
 ### DataPlaneKonnectExtension
 
 
-DataPlane is the Schema for the dataplanes API
+DataPlaneKonnectExtension is the Schema for the dataplanekonnectextension API,
+and is intended to be referenced as extension by the dataplane API.
+If a DataPlane successfully refers a DataPlaneKonnectExtension, the DataPlane
+deployment spec gets customized to include the konnect-related configuration.
 
 <!-- data_plane_konnect_extension description placeholder -->
 
@@ -262,7 +265,7 @@ _Appears in:_
 #### DataPlaneKonnectExtensionSpec
 
 
-DataPlaneSpec defines the desired state of DataPlane
+DataPlaneKonnectExtensionSpec defines the desired state of DataPlaneKonnectExtension.
 
 
 
@@ -270,7 +273,8 @@ DataPlaneSpec defines the desired state of DataPlane
 | --- | --- |
 | `controlPlaneID` _string_ | ControlPlaneID is the identifier of the Konnect Control Plane. |
 | `controlPlaneRegion` _string_ | ControlPlaneRegion is the region of the Konnect Control Plane. If not set, 'us' is used as the default region. |
-| `clusterCertificate` _string_ | ClusterCertificate is a name of the Secret containing the Konnect Control Plane's cluster certificate. |
+| `clusterDataPlaneLabels` _object (keys:string, values:string)_ | ClusterDataPlaneLabels is a set of labels that will be applied to the Konnect DataPlane. |
+| `clusterCertificateSecret` _string_ | ClusterCertificateSecret is a name of the Secret containing the Konnect Control Plane's cluster certificate. |
 
 
 _Appears in:_
@@ -279,7 +283,7 @@ _Appears in:_
 #### DataPlaneKonnectExtensionStatus
 
 
-DataPlaneStatus defines the observed state of DataPlane
+DataPlaneKonnectExtensionStatus defines the observed state of DataPlaneKonnectExtension.
 
 
 
