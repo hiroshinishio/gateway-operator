@@ -12,7 +12,8 @@ import (
 // SupportedKonnectEntityType is an interface that all Konnect entity types
 // must implement.
 type SupportedKonnectEntityType interface {
-	configurationv1alpha1.KongService |
+	konnectv1alpha1.KonnectControlPlane |
+		configurationv1alpha1.KongService |
 		configurationv1alpha1.KongRoute |
 		configurationv1.KongConsumer
 	// TODO: add other types
@@ -36,6 +37,6 @@ type EntityType[
 	// Additional methods which are used in reconciling Konnect entities.
 	GetConditions() []metav1.Condition
 	SetConditions([]metav1.Condition)
-	GetKonnectStatus() *configurationv1alpha1.KonnectEntityStatus
+	GetKonnectStatus() *konnectv1alpha1.KonnectEntityStatus
 	GetKonnectAPIAuthConfigurationRef() konnectv1alpha1.KonnectAPIAuthConfigurationRef
 }

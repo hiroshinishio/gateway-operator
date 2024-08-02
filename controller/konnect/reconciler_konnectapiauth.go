@@ -152,30 +152,30 @@ func (r *KonnectAPIAuthConfigurationReconciler) Reconcile(
 	// https://github.com/Kong/sdk-konnect-go/blob/999d9a987e1aa7d2e09ac11b1450f4563adf21ea/models/operations/getorganizationsme.go#L10-L12
 	respOrg, err := sdk.Me.GetOrganizationsMe(ctx, sdkkonnectgoops.WithServerURL("https://"+apiAuth.Spec.ServerURL))
 	if err != nil {
+		logger.Error(err, "failed to get organization info from Konnect")
 		if cond, ok := k8sutils.GetCondition(KonnectEntityAPIAuthConfigurationValidConditionType, &apiAuth); !ok ||
 			cond.Status != metav1.ConditionFalse ||
 			cond.Reason != KonnectEntityAPIAuthConfigurationReasonInvalid ||
 			cond.ObservedGeneration != apiAuth.GetGeneration() ||
-			cond.Message != err.Error() ||
 			apiAuth.Status.OrganizationID != "" ||
 			apiAuth.Status.ServerURL != apiAuth.Spec.ServerURL {
 
 			apiAuth.Status.OrganizationID = ""
 			apiAuth.Status.ServerURL = apiAuth.Spec.ServerURL
 
-			res, err := updateStatusWithCondition(
+			res, errUpdate := updateStatusWithCondition(
 				ctx, r.Client, &apiAuth,
 				KonnectEntityAPIAuthConfigurationValidConditionType,
 				metav1.ConditionFalse,
 				KonnectEntityAPIAuthConfigurationReasonInvalid,
 				err.Error(),
 			)
-			if err != nil || res.Requeue {
-				return res, err
+			if errUpdate != nil || res.Requeue {
+				return res, errUpdate
 			}
-			return ctrl.Result{}, fmt.Errorf("failed to get organization info from Konnect: %w", err)
+			return ctrl.Result{}, nil
 		}
-		return ctrl.Result{}, fmt.Errorf("failed to get organization info from Konnect: %w", err)
+		return ctrl.Result{}, nil
 	}
 
 	// Update the status only if it would change to prevent unnecessary updates.

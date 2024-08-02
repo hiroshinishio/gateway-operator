@@ -32,13 +32,15 @@ func testNewKonnectEntityReconciler[
 ) {
 	t.Helper()
 
+	sdkFactory := NewSDKFactory()
+
 	t.Run(ent.GetTypeName(), func(t *testing.T) {
 		cl := fakectrlruntimeclient.NewFakeClient()
 		mgr, err := ctrl.NewManager(&rest.Config{}, ctrl.Options{
 			Scheme: scheme.Get(),
 		})
 		require.NoError(t, err)
-		reconciler := NewKonnectEntityReconciler[T, TEnt](ent, false, cl)
+		reconciler := NewKonnectEntityReconciler[T, TEnt](sdkFactory, false, cl)
 		require.NoError(t, reconciler.SetupWithManager(mgr))
 	})
 }
